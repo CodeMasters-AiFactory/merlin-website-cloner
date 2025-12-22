@@ -40,3 +40,5 @@ nul
 # Data files (keep structure, ignore content)
 data/*.json
 !data/.gitkeep
+
+/src/generated/prisma

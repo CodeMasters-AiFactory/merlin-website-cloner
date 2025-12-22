@@ -1,0 +1,261 @@
+// Prisma Schema for Merlin Website Cloner
+// COD-9: PostgreSQL Database Models
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ==================== USER MODEL ====================
+model User {
+  id                          String    @id @default(cuid())
+  email                       String    @unique
+  name                        String
+  passwordHash                String
+  plan                        Plan      @default(STARTER)
+  createdAt                   DateTime  @default(now())
+  updatedAt                   DateTime  @updatedAt
+  
+  // Usage tracking
+  pagesUsed                   Int       @default(0)
+  pagesLimit                  Int       @default(10)
+  
+  // Stripe integration
+  stripeCustomerId            String?   @unique
+  stripeSubscriptionId        String?
+  subscriptionStatus          SubscriptionStatus?
+  subscriptionCurrentPeriodEnd DateTime?
+  subscriptionCancelAtPeriodEnd Boolean @default(false)
+  
+  // Credit system
+  credits                     Int       @default(0)
+  creditsUsedThisMonth        Int       @default(0)
+  creditsIncludedMonthly      Int       @default(0)
+  creditsPurchased            Int       @default(0)
+  lastCreditReset             DateTime?
+  
+  // Proxy network
+  proxyCredits                Int       @default(0)
+  proxyNodesCount             Int       @default(0)
+  totalBandwidthContributed   BigInt    @default(0)
+  
+  // Relations
+  cloneJobs                   CloneJob[]
+  transactions                Transaction[]
+  creditTransactions          CreditTransaction[]
+  consents                    Consent[]
+  
+  @@index([email])
+  @@index([stripeCustomerId])
+}
+
+enum Plan {
+  STARTER
+  PRO
+  AGENCY
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  TRIALING
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+  UNPAID
+}
+
+// ==================== CLONE JOB MODEL ====================
+model CloneJob {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  url               String
+  status            JobStatus @default(PENDING)
+  progress          Int       @default(0)
+  pagesCloned       Int       @default(0)
+  assetsCaptured    Int       @default(0)
+  outputDir         String
+  exportPath        String?
+  
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  completedAt       DateTime?
+  startTime         DateTime?
+  
+  // Progress tracking
+  currentUrl        String?
+  currentStatus     String?
+  message           String?
+  estimatedTimeRemaining Int?
+  
+  // Errors stored as JSON
+  errors            String[]  @default([])
+  
+  // Verification result as JSON
+  verificationPassed  Boolean?
+  verificationScore   Float?
+  verificationSummary String?
+  verificationChecks  Json?
+  
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum JobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// ==================== TRANSACTION MODEL ====================
+model Transaction {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type              TransactionType
+  amount            Float
+  currency          String    @default("USD")
+  status            TransactionStatus @default(PENDING)
+  
+  // Stripe data
+  stripePaymentIntentId String? @unique
+  stripeInvoiceId       String?
+  stripeChargeId        String?
+  
+  // Details
+  description       String?
+  metadata          Json?
+  
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  completedAt       DateTime?
+  
+  @@index([userId])
+  @@index([stripePaymentIntentId])
+  @@index([createdAt])
+}
+
+enum TransactionType {
+  SUBSCRIPTION
+  CREDIT_PURCHASE
+  REFUND
+  ADDON
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+// ==================== CREDIT TRANSACTION MODEL ====================
+model CreditTransaction {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type        CreditType
+  amount      Int       // positive = added, negative = used
+  balance     Int       // balance after transaction
+  description String
+  jobId       String?   // Related clone job if usage
+  
+  createdAt   DateTime  @default(now())
+  
+  @@index([userId])
+  @@index([createdAt])
+}
+
+enum CreditType {
+  SUBSCRIPTION_GRANT
+  PURCHASE
+  USAGE
+  PROXY_EARNED
+  REFUND
+  EXPIRED
+}
+
+// ==================== CONSENT MODEL ====================
+model Consent {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type        ConsentType
+  version     String
+  accepted    Boolean     @default(true)
+  acceptedAt  DateTime    @default(now())
+  ipHash      String      // Hashed for privacy
+  userAgent   String
+  metadata    Json?
+  
+  @@index([userId])
+  @@index([type])
+}
+
+enum ConsentType {
+  TERMS_OF_SERVICE
+  PRIVACY_POLICY
+  CLONE_DISCLAIMER
+  DMCA_ACKNOWLEDGMENT
+}
+
+// ==================== DMCA REQUEST MODEL ====================
+model DMCARequest {
+  id                      String      @id @default(cuid())
+  status                  DMCAStatus  @default(PENDING)
+  
+  // Claimant info
+  claimantName            String
+  claimantEmail           String
+  claimantCompany         String?
+  claimantAddress         String?
+  claimantPhone           String?
+  
+  // Infringement details
+  originalWorkUrl         String
+  originalWorkDescription String?
+  infringingUrl           String
+  infringingJobId         String?
+  infringingUserId        String?
+  
+  // Legal statements
+  goodFaithStatement      Boolean
+  accuracyStatement       Boolean
+  ownershipStatement      Boolean
+  signature               String
+  
+  // Processing
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+  reviewedAt              DateTime?
+  reviewedBy              String?
+  reviewNotes             String?
+  actionTaken             String?
+  
+  // Counter-notice (JSON)
+  counterNotice           Json?
+  
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum DMCAStatus {
+  PENDING
+  REVIEWING
+  VALID
+  INVALID
+  ACTIONED
+  COUNTER_FILED
+}
