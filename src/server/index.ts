@@ -1683,6 +1683,97 @@ app.post('/api/configs/:name/clone', authenticateToken, async (req: AuthRequest,
   }
 });
 
+// ===========================================
+// DMCA & CONSENT ROUTES (COD-14)
+// ===========================================
+
+import { dmcaService } from '../services/dmcaService.js';
+import { consentService } from '../services/consentService.js';
+
+// POST /api/dmca - Submit DMCA takedown request
+app.post('/api/dmca', generalRateLimiter, (req, res) => {
+  try {
+    const {
+      claimantName, claimantEmail, claimantCompany, claimantAddress, claimantPhone,
+      originalWorkUrl, originalWorkDescription, infringingUrl,
+      goodFaithStatement, accuracyStatement, ownershipStatement, signature
+    } = req.body;
+
+    // Validate required fields
+    if (!claimantName || !claimantEmail || !originalWorkUrl || !infringingUrl || !signature) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    if (!goodFaithStatement || !accuracyStatement || !ownershipStatement) {
+      return res.status(400).json({ error: 'All legal statements must be acknowledged' });
+    }
+
+    const request = dmcaService.submitRequest({
+      claimantName, claimantEmail, claimantCompany, claimantAddress, claimantPhone,
+      originalWorkUrl, originalWorkDescription, infringingUrl,
+      goodFaithStatement, accuracyStatement, ownershipStatement, signature
+    });
+
+    res.json({ 
+      success: true, 
+      requestId: request.id,
+      message: 'DMCA request received. We will review within 24-48 hours.'
+    });
+  } catch (error) {
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+// GET /api/dmca/:id - Check DMCA request status
+app.get('/api/dmca/:id', (req, res) => {
+  const request = dmcaService.getRequest(req.params.id);
+  if (!request) {
+    return res.status(404).json({ error: 'Request not found' });
+  }
+  res.json({ 
+    id: request.id,
+    status: request.status,
+    createdAt: request.createdAt,
+    updatedAt: request.updatedAt
+  });
+});
+
+// POST /api/consent - Record user consent
+app.post('/api/consent', authenticateToken, (req: AuthRequest, res) => {
+  try {
+    const { types } = req.body; // Array of consent types to record
+    const userId = req.user!.id;
+    const ip = req.ip || req.socket.remoteAddress || 'unknown';
+    const userAgent = req.headers['user-agent'] || 'unknown';
+
+    if (!types || !Array.isArray(types) || types.length === 0) {
+      return res.status(400).json({ error: 'Consent types required' });
+    }
+
+    const consents = types.map((type: string) => 
+      consentService.recordConsent(userId, type as any, ip, userAgent)
+    );
+
+    res.json({ success: true, consents });
+  } catch (error) {
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+// GET /api/consent/check - Check if user has all required consents
+app.get('/api/consent/check', authenticateToken, (req: AuthRequest, res) => {
+  const userId = req.user!.id;
+  const { allowed, missing } = consentService.canClone(userId);
+  res.json({ allowed, missing });
+});
+
+// GET /api/consent - Get user's consent records
+app.get('/api/consent', authenticateToken, (req: AuthRequest, res) => {
+  const userId = req.user!.id;
+  const consents = consentService.getUserConsents(userId);
+  res.json({ consents });
+});
+
 /**
  * Serve frontend for all other routes
  */
