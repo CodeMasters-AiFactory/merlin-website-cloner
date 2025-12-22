@@ -1,0 +1,108 @@
+# Merlin Website Cloner - Docker Compose
+# COD-12-002: Full stack with PostgreSQL and Redis
+
+services:
+  # ==================== APPLICATION ====================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: merlin-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgresql://merlin:${DB_PASSWORD:-merlin123}@db:5432/merlin?schema=public
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000}
+    volumes:
+      - ./data:/app/data
+      - ./clones:/app/clones
+      - ./logs:/app/logs
+      - ./configs:/app/configs
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - merlin-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # ==================== DATABASE ====================
+  db:
+    image: postgres:16-alpine
+    container_name: merlin-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=merlin
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-merlin123}
+      - POSTGRES_DB=merlin
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - merlin-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U merlin -d merlin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==================== REDIS ====================
+  redis:
+    image: redis:7-alpine
+    container_name: merlin-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - merlin-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==================== MIGRATIONS (one-time) ====================
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: merlin-migrate
+    environment:
+      - DATABASE_URL=postgresql://merlin:${DB_PASSWORD:-merlin123}@db:5432/merlin?schema=public
+    command: npx prisma migrate deploy
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - merlin-network
+    profiles:
+      - migrate
+
+# ==================== VOLUMES ====================
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+
+# ==================== NETWORKS ====================
+networks:
+  merlin-network:
+    driver: bridge
