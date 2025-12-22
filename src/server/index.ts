@@ -2,19 +2,38 @@
  * Main Server Entry Point
  * Express server for website cloning API
  * Updated: Auto-verification enabled
+ * Security: COD-11 hardening applied
  */
 
 import express from 'express';
-import cors from 'cors';
 import compression from 'compression';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { WebsiteCloner } from '../services/websiteCloner.js';
 import { MonitoringService } from '../services/monitoring.js';
 import { LoggingService } from '../services/logging.js';
-import { authenticateToken, optionalAuth, type AuthRequest } from './auth.js';
+import { 
+  authenticateToken, 
+  optionalAuth, 
+  generateToken, 
+  hashPassword, 
+  verifyPassword, 
+  isLegacyHash,
+  validatePassword,
+  type AuthRequest 
+} from './auth.js';
+import {
+  corsMiddleware,
+  helmetMiddleware,
+  generalRateLimiter,
+  authRateLimiter,
+  cloneRateLimiter,
+  signupRateLimiter,
+  validateCloneUrl,
+  sanitizeRequest,
+  securityHeaders,
+} from './security.js';
 import { db, type User } from './database.js';
-import crypto from 'crypto';
 import fs from 'fs-extra';
 import { ConfigManager } from '../services/configManager.js';
 import { PaymentService } from '../services/paymentService.js';
@@ -26,11 +45,15 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// Security Middleware (ORDER MATTERS!)
+app.use(helmetMiddleware);           // Security headers first
+app.use(corsMiddleware);             // CORS handling
 app.use(compression());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(securityHeaders);            // Additional security headers
+app.use(sanitizeRequest);            // Sanitize all inputs
+app.use(generalRateLimiter);         // General rate limiting
+app.use(express.json({ limit: '10mb' }));  // Limit payload size
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Serve static files from frontend build (but NOT for /api routes)
 const frontendPath = path.join(__dirname, '../../frontend/dist');
@@ -87,7 +110,7 @@ app.use((req, res, next) => {
  */
 
 // POST /api/auth/signup
-app.post('/api/auth/signup', async (req, res) => {
+app.post('/api/auth/signup', signupRateLimiter, authRateLimiter, async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
@@ -95,8 +118,16 @@ app.post('/api/auth/signup', async (req, res) => {
       return res.status(400).json({ error: 'Name, email, and password are required' });
     }
 
-    if (password.length < 8) {
-      return res.status(400).json({ error: 'Password must be at least 8 characters' });
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      return res.status(400).json({ error: passwordValidation.errors.join(', ') });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: 'Invalid email format' });
     }
 
     // Check if user exists
@@ -104,15 +135,15 @@ app.post('/api/auth/signup', async (req, res) => {
       return res.status(400).json({ error: 'Email already registered' });
     }
 
-    // Hash password (simple hash, use bcrypt in production)
-    const passwordHash = crypto.createHash('sha256').update(password).digest('hex');
+    // Hash password with bcrypt (secure!)
+    const passwordHash = await hashPassword(password);
 
     // Default to starter plan with free trial credits
     const pagesLimit = 10; // Starter gets 10 pages per month
 
     const user = db.createUser({
-      email,
-      name,
+      email: email.toLowerCase().trim(),
+      name: name.trim(),
       passwordHash,
       plan: 'starter',
       pagesLimit
@@ -121,12 +152,12 @@ app.post('/api/auth/signup', async (req, res) => {
     // Give starter users 100 free trial credits
     db.resetMonthlyCredits(user.id, 100);
 
-    // Generate token (simple base64, use JWT in production)
-    const token = Buffer.from(JSON.stringify({
+    // Generate proper JWT token
+    const token = generateToken({
       id: user.id,
       email: user.email,
       name: user.name
-    })).toString('base64');
+    });
 
     res.json({
       token,
@@ -145,7 +176,7 @@ app.post('/api/auth/signup', async (req, res) => {
 });
 
 // POST /api/auth/login
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', authRateLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -153,22 +184,31 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    const user = db.getUserByEmail(email);
+    const user = db.getUserByEmail(email.toLowerCase().trim());
     if (!user) {
+      // Don't reveal whether email exists
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const passwordHash = crypto.createHash('sha256').update(password).digest('hex');
-    if (user.passwordHash !== passwordHash) {
+    // Verify password (supports legacy SHA256 and new bcrypt)
+    const isValid = await verifyPassword(password, user.passwordHash);
+    if (!isValid) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Generate token
-    const token = Buffer.from(JSON.stringify({
+    // Migrate legacy hash to bcrypt on successful login
+    if (isLegacyHash(user.passwordHash)) {
+      const newHash = await hashPassword(password);
+      db.updateUser(user.id, { passwordHash: newHash });
+      console.log(`[Auth] Migrated user ${user.id} to bcrypt`);
+    }
+
+    // Generate proper JWT token
+    const token = generateToken({
       id: user.id,
       email: user.email,
       name: user.name
-    })).toString('base64');
+    });
 
     res.json({
       token,
@@ -208,13 +248,19 @@ app.get('/api/auth/me', authenticateToken, (req: AuthRequest, res) => {
  */
 
 // POST /api/clone
-app.post('/api/clone', authenticateToken, async (req: AuthRequest, res) => {
+app.post('/api/clone', cloneRateLimiter, authenticateToken, async (req: AuthRequest, res) => {
   try {
     const { url, options } = req.body;
     const userId = req.userId!;
 
     if (!url) {
       return res.status(400).json({ error: 'URL is required' });
+    }
+
+    // Validate URL (SSRF protection)
+    const urlValidation = validateCloneUrl(url);
+    if (!urlValidation.valid) {
+      return res.status(400).json({ error: urlValidation.error });
     }
 
     // Check user limits

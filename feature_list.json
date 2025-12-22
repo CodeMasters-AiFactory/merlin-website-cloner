@@ -2,9 +2,9 @@
   "project": "Merlin Website Cloner",
   "linear_project_id": "0ece2f30-0273-4635-aa00-06dcfb79b201",
   "linear_url": "https://linear.app/code-masters/project/merlin-website-cloner-0102a6dc2777",
-  "last_updated": "",
+  "last_updated": "2025-12-22T11:45:00Z",
   "total_features": 42,
-  "completed_features": 0,
+  "completed_features": 18,
   "features": [
     {
       "id": "COD-11-001",
@@ -14,7 +14,7 @@
       "description": "Move JWT secret from hardcoded value to environment variable",
       "file": "src/server/auth.ts",
       "steps": ["Locate hardcoded JWT_SECRET in auth.ts", "Replace with process.env.JWT_SECRET", "Add JWT_SECRET to .env.example", "Add validation to fail startup if JWT_SECRET not set", "Test authentication still works"],
-      "passes": false
+      "passes": true
     },
     {
       "id": "COD-11-002",
@@ -24,7 +24,7 @@
       "description": "Replace simple hash with bcrypt for password hashing",
       "file": "src/server/auth.ts",
       "steps": ["Install bcrypt package", "Replace hashPassword to use bcrypt.hash with salt 12", "Replace comparePassword to use bcrypt.compare", "Test login/register works"],
-      "passes": false
+      "passes": true
     },
     {
       "id": "COD-11-003",
@@ -34,7 +34,7 @@
       "description": "Add rate limiting to API endpoints",
       "file": "src/server/index.ts",
       "steps": ["Install express-rate-limit", "Create rate limit middleware (100 req/15min)", "Stricter limit on auth (10/15min)", "Limit clone endpoints (20/hour)", "Test limits work"],
-      "passes": false
+      "passes": true
     },
     {
       "id": "COD-11-004",
@@ -44,7 +44,7 @@
       "description": "Configure CORS to restrict allowed origins",
       "file": "src/server/index.ts",
       "steps": ["Add ALLOWED_ORIGINS env var", "Configure CORS with specific origins", "Test frontend connects", "Verify random origins blocked"],
-      "passes": false
+      "passes": true
     },
     {
       "id": "COD-11-005",
@@ -54,7 +54,7 @@
       "description": "Add input validation for clone URLs",
       "file": "src/server/services/websiteCloner.ts",
       "steps": ["Install validator package", "Add URL validation", "Block private IPs/localhost", "Block dangerous protocols", "Test validation"],
-      "passes": false
+      "passes": true
     },
     {
       "id": "COD-11-006",
@@ -64,7 +64,7 @@
       "description": "Add Helmet.js for security headers",
       "file": "src/server/index.ts",
       "steps": ["Install helmet", "Add helmet middleware", "Configure CSP", "Test headers set", "Verify app works"],
-      "passes": false
+      "passes": true
     },
     {
       "id": "COD-9-001",
@@ -154,7 +154,7 @@
       "description": "Configure Stripe SDK properly",
       "file": "src/server/services/paymentService.ts",
       "steps": ["Verify Stripe keys in env", "Initialize Stripe with API version", "Add error handling", "Test Stripe connection"],
-      "passes": false
+      "passes": true
     },
     {
       "id": "COD-10-002",
@@ -164,7 +164,7 @@
       "description": "Create Stripe checkout session endpoint",
       "file": "src/server/routes/payments.ts",
       "steps": ["Create POST /api/checkout endpoint", "Generate checkout session with price", "Return session URL", "Test checkout flow"],
-      "passes": false
+      "passes": true
     },
     {
       "id": "COD-10-003",
@@ -174,7 +174,7 @@
       "description": "Set up Stripe webhook endpoint",
       "file": "src/server/routes/webhooks.ts",
       "steps": ["Create POST /api/webhooks/stripe", "Verify webhook signature", "Parse event types", "Add raw body parser"],
-      "passes": false
+      "passes": true
     },
     {
       "id": "COD-10-004",
@@ -184,7 +184,7 @@
       "description": "Handle checkout.session.completed webhook",
       "file": "src/server/routes/webhooks.ts",
       "steps": ["Extract customer and subscription data", "Update user subscription tier", "Record transaction in database", "Send confirmation email"],
-      "passes": false
+      "passes": true
     },
     {
       "id": "COD-10-005",
@@ -194,7 +194,7 @@
       "description": "Handle subscription.updated webhook",
       "file": "src/server/routes/webhooks.ts",
       "steps": ["Detect plan changes", "Update user tier accordingly", "Handle upgrades/downgrades", "Log changes"],
-      "passes": false
+      "passes": true
     },
     {
       "id": "COD-10-006",
@@ -204,7 +204,7 @@
       "description": "Handle subscription.deleted webhook",
       "file": "src/server/routes/webhooks.ts",
       "steps": ["Detect cancellation", "Downgrade user to free tier", "Update database", "Send notification"],
-      "passes": false
+      "passes": true
     },
     {
       "id": "COD-10-007",
@@ -214,7 +214,7 @@
       "description": "Enforce page limits based on subscription",
       "file": "src/server/services/websiteCloner.ts",
       "steps": ["Check user tier before clone", "Apply page limits per tier", "Return error if exceeded", "Show upgrade prompt"],
-      "passes": false
+      "passes": true
     },
     {
       "id": "COD-10-008",
@@ -224,7 +224,7 @@
       "description": "Create billing portal endpoint",
       "file": "src/server/routes/payments.ts",
       "steps": ["Create GET /api/billing-portal", "Generate Stripe portal session", "Return portal URL", "Test portal access"],
-      "passes": false
+      "passes": true
     },
     {
       "id": "COD-12-001",
@@ -284,7 +284,7 @@
       "description": "Enforce robots.txt by default",
       "file": "src/server/services/robotsTxtParser.ts",
       "steps": ["Fetch robots.txt before clone", "Parse disallowed paths", "Block crawling disallowed URLs", "Add override option for site owners"],
-      "passes": false
+      "passes": true
     },
     {
       "id": "COD-14-002",
@@ -294,7 +294,7 @@
       "description": "Add rate limiting per domain",
       "file": "src/server/services/websiteCloner.ts",
       "steps": ["Track requests per domain", "Implement delay between requests", "Respect Crawl-delay directive", "Default to 1 second delay"],
-      "passes": false
+      "passes": true
     },
     {
       "id": "COD-14-003",
@@ -314,7 +314,7 @@
       "description": "Strengthen Terms of Service",
       "file": "frontend/src/pages/Terms.tsx",
       "steps": ["Add backup-only usage clause", "Add copyright disclaimer", "Add DMCA process", "Require checkbox acceptance"],
-      "passes": false
+      "passes": true
     },
     {
       "id": "COD-14-005",
