@@ -1,0 +1,51 @@
+# MERLIN WEBSITE CLONER - AUTONOMOUS AGENT PROGRESS LOG
+# =====================================================
+# This file tracks all work done by Claude Code agents
+# DO NOT DELETE - Required for agent continuity
+# Linear Project: https://linear.app/code-masters/project/merlin-website-cloner-0102a6dc2777
+
+## PROJECT STATUS
+- Total Features: 42
+- Completed: 0
+- In Progress: 0
+- Failed: 0
+- Remaining: 42
+
+## CURRENT PRIORITY ORDER (from Linear)
+1. COD-11: Security Hardening (URGENT) - 6 features
+2. COD-9: PostgreSQL + Prisma (HIGH) - 8 features
+3. COD-10: Stripe Payments (HIGH) - 8 features
+4. COD-12: Docker + CI/CD (HIGH) - 5 features
+5. COD-14: Legal Compliance (HIGH) - 5 features
+6. COD-13: Test Coverage (MEDIUM) - 6 features
+
+## SESSION LOG
+Format: [DATE TIME] Session #N - Agent Action
+
+---
+### Session History (newest first)
+---
+
+[AWAITING FIRST SESSION]
+
+---
+## NOTES FOR NEXT AGENT
+- Read feature_list.json to see what needs to be done
+- Check git log for recent changes
+- Run init.ps1 to start the dev environment
+- Work on ONE feature at a time
+- Commit after each completed feature
+- Update this file after each session
+- Mark features as "passes": true only after testing
+
+## KNOWN ISSUES
+(None yet - will be updated as issues are discovered)
+
+## BLOCKED ITEMS
+(None yet - will be updated if blockers found)
+
+## ENVIRONMENT INFO
+- Node.js required: v18+
+- Package manager: npm
+- Database: In-memory (migrating to PostgreSQL in COD-9)
+- Location: C:\Cursor Projects\Merlin website clone
