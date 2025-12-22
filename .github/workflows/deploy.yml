@@ -1,0 +1,93 @@
+# Merlin Website Cloner - Deploy Workflow
+# COD-12-005: Deploy to Azure with staging approval
+
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [Build]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  AZURE_WEBAPP_NAME: merlin-cloner
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # ==================== DEPLOY TO STAGING ====================
+  staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
+    environment:
+      name: staging
+      url: https://staging.merlin-cloner.azurewebsites.net
+
+    steps:
+      - name: Log in to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure Web App (Staging)
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}-staging
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests on staging..."
+          sleep 30
+          curl -f https://staging.merlin-cloner.azurewebsites.net/health || exit 1
+          echo "Smoke tests passed!"
+
+  # ==================== DEPLOY TO PRODUCTION ====================
+  production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: staging
+    if: |
+      (github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+    environment:
+      name: production
+      url: https://merlin-cloner.azurewebsites.net
+
+    steps:
+      - name: Log in to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure Web App (Production)
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Verify deployment
+        run: |
+          echo "Verifying production deployment..."
+          sleep 30
+          curl -f https://merlin-cloner.azurewebsites.net/health || exit 1
+          echo "Production deployment verified!"
+
+      - name: Notify success
+        if: success()
+        run: echo "🚀 Successfully deployed to production!"
+
+      - name: Notify failure
+        if: failure()
+        run: echo "❌ Production deployment failed!"
