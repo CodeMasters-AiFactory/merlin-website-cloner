@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(find:*)",
+      "Bash(npx tsc:*)",
+      "Bash(curl:*)",
+      "Bash(cat:*)",
+      "Bash(TOKEN=\"eyJpZCI6IjE3NjYyMzAwNTgyMDQiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJuYW1lIjoiVGVzdCBVc2VyIn0=\" curl -s http://localhost:3000/api/jobs  -H \"Authorization: Bearer $TOKEN\")"
+    ]
+  }
+}

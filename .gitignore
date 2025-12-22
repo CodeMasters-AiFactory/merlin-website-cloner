@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Build outputs
+dist/
+frontend/dist/
+
+# Logs
+logs/
+*.log
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Generated/temp files
+clones/
+cache/
+cookies/
+benchmark-output/
+benchmark-temp/
+shared-assets/
+test-screenshots/
+*.zip
+*.tar.gz
+*.mhtml
+*.warc
+nul
+
+# Data files (keep structure, ignore content)
+data/*.json
+!data/.gitkeep

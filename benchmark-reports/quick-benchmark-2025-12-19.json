@@ -1,0 +1,272 @@
+{
+  "totalSites": 10,
+  "successfulSites": 0,
+  "failedSites": 10,
+  "successRate": 0,
+  "averageDuration": 53.7,
+  "byDifficulty": {
+    "easy": {
+      "total": 3,
+      "success": 0,
+      "rate": 0
+    },
+    "medium": {
+      "total": 4,
+      "success": 0,
+      "rate": 0
+    },
+    "hard": {
+      "total": 2,
+      "success": 0,
+      "rate": 0
+    },
+    "extreme": {
+      "total": 1,
+      "success": 0,
+      "rate": 0
+    }
+  },
+  "byCategory": {
+    "cdn": {
+      "total": 1,
+      "success": 0,
+      "rate": 0
+    },
+    "ecommerce": {
+      "total": 2,
+      "success": 0,
+      "rate": 0
+    },
+    "design": {
+      "total": 1,
+      "success": 0,
+      "rate": 0
+    },
+    "developer": {
+      "total": 2,
+      "success": 0,
+      "rate": 0
+    },
+    "social": {
+      "total": 1,
+      "success": 0,
+      "rate": 0
+    },
+    "crypto": {
+      "total": 1,
+      "success": 0,
+      "rate": 0
+    },
+    "classifieds": {
+      "total": 1,
+      "success": 0,
+      "rate": 0
+    },
+    "tickets": {
+      "total": 1,
+      "success": 0,
+      "rate": 0
+    }
+  },
+  "results": [
+    {
+      "site": {
+        "url": "https://www.cloudflare.com",
+        "category": "cdn",
+        "difficulty": "easy",
+        "expectedChallenges": [
+          "js-challenge"
+        ]
+      },
+      "success": false,
+      "duration": 193,
+      "pagesCloned": 0,
+      "errors": [
+        "An unexpected error occurred. Please try again or contact support if the problem persists. (URL: https://www.cloudflare.com)"
+      ],
+      "challengesEncountered": [],
+      "proxyUsed": false,
+      "timestamp": "2025-12-19T13:35:21.260Z"
+    },
+    {
+      "site": {
+        "url": "https://www.shopify.com",
+        "category": "ecommerce",
+        "difficulty": "easy",
+        "expectedChallenges": [
+          "js-challenge"
+        ]
+      },
+      "success": false,
+      "duration": 32,
+      "pagesCloned": 0,
+      "errors": [
+        "An unexpected error occurred. Please try again or contact support if the problem persists. (URL: https://www.shopify.com)"
+      ],
+      "challengesEncountered": [],
+      "proxyUsed": false,
+      "timestamp": "2025-12-19T13:35:24.298Z"
+    },
+    {
+      "site": {
+        "url": "https://www.figma.com",
+        "category": "design",
+        "difficulty": "easy",
+        "expectedChallenges": [
+          "js-challenge"
+        ]
+      },
+      "success": false,
+      "duration": 49,
+      "pagesCloned": 0,
+      "errors": [
+        "An unexpected error occurred. Please try again or contact support if the problem persists. (URL: https://www.figma.com)"
+      ],
+      "challengesEncountered": [],
+      "proxyUsed": false,
+      "timestamp": "2025-12-19T13:35:27.352Z"
+    },
+    {
+      "site": {
+        "url": "https://www.github.com",
+        "category": "developer",
+        "difficulty": "medium",
+        "expectedChallenges": [
+          "js-challenge",
+          "rate-limit"
+        ]
+      },
+      "success": false,
+      "duration": 39,
+      "pagesCloned": 0,
+      "errors": [
+        "An unexpected error occurred. Please try again or contact support if the problem persists. (URL: https://www.github.com)"
+      ],
+      "challengesEncountered": [],
+      "proxyUsed": false,
+      "timestamp": "2025-12-19T13:35:30.408Z"
+    },
+    {
+      "site": {
+        "url": "https://www.gitlab.com",
+        "category": "developer",
+        "difficulty": "medium",
+        "expectedChallenges": [
+          "js-challenge",
+          "rate-limit"
+        ]
+      },
+      "success": false,
+      "duration": 37,
+      "pagesCloned": 0,
+      "errors": [
+        "An unexpected error occurred. Please try again or contact support if the problem persists. (URL: https://www.gitlab.com)"
+      ],
+      "challengesEncountered": [],
+      "proxyUsed": false,
+      "timestamp": "2025-12-19T13:35:33.457Z"
+    },
+    {
+      "site": {
+        "url": "https://www.reddit.com",
+        "category": "social",
+        "difficulty": "medium",
+        "expectedChallenges": [
+          "js-challenge",
+          "fingerprinting"
+        ]
+      },
+      "success": false,
+      "duration": 33,
+      "pagesCloned": 0,
+      "errors": [
+        "An unexpected error occurred. Please try again or contact support if the problem persists. (URL: https://www.reddit.com)"
+      ],
+      "challengesEncountered": [],
+      "proxyUsed": false,
+      "timestamp": "2025-12-19T13:35:36.505Z"
+    },
+    {
+      "site": {
+        "url": "https://www.coinbase.com",
+        "category": "crypto",
+        "difficulty": "medium",
+        "expectedChallenges": [
+          "js-challenge",
+          "rate-limit"
+        ]
+      },
+      "success": false,
+      "duration": 40,
+      "pagesCloned": 0,
+      "errors": [
+        "An unexpected error occurred. Please try again or contact support if the problem persists. (URL: https://www.coinbase.com)"
+      ],
+      "challengesEncountered": [],
+      "proxyUsed": false,
+      "timestamp": "2025-12-19T13:35:39.564Z"
+    },
+    {
+      "site": {
+        "url": "https://www.nike.com",
+        "category": "ecommerce",
+        "difficulty": "hard",
+        "expectedChallenges": [
+          "turnstile",
+          "fingerprinting"
+        ]
+      },
+      "success": false,
+      "duration": 35,
+      "pagesCloned": 0,
+      "errors": [
+        "An unexpected error occurred. Please try again or contact support if the problem persists. (URL: https://www.nike.com)"
+      ],
+      "challengesEncountered": [],
+      "proxyUsed": false,
+      "timestamp": "2025-12-19T13:35:42.620Z"
+    },
+    {
+      "site": {
+        "url": "https://www.craigslist.org",
+        "category": "classifieds",
+        "difficulty": "hard",
+        "expectedChallenges": [
+          "turnstile",
+          "rate-limit"
+        ]
+      },
+      "success": false,
+      "duration": 35,
+      "pagesCloned": 0,
+      "errors": [
+        "An unexpected error occurred. Please try again or contact support if the problem persists. (URL: https://www.craigslist.org)"
+      ],
+      "challengesEncountered": [],
+      "proxyUsed": false,
+      "timestamp": "2025-12-19T13:35:45.664Z"
+    },
+    {
+      "site": {
+        "url": "https://www.stubhub.com",
+        "category": "tickets",
+        "difficulty": "extreme",
+        "expectedChallenges": [
+          "turnstile",
+          "captcha",
+          "fingerprinting"
+        ]
+      },
+      "success": false,
+      "duration": 44,
+      "pagesCloned": 0,
+      "errors": [
+        "An unexpected error occurred. Please try again or contact support if the problem persists. (URL: https://www.stubhub.com)"
+      ],
+      "challengesEncountered": [],
+      "proxyUsed": false,
+      "timestamp": "2025-12-19T13:35:48.715Z"
+    }
+  ],
+  "timestamp": "2025-12-19T13:35:48.718Z"
+}
