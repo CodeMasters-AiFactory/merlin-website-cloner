@@ -1,0 +1,172 @@
+# Merlin Website Clone - Cursor AI Rules
+
+## Project Mission
+
+Build the **world's #1 website cloner** - a commercial product that works on 95%+ of websites and can be sold.
+
+## Core Principles
+
+1. **Maximum Autonomy** - Execute without asking permission
+2. **Strict Honesty** - Never lie, never deceive, always tell the truth
+3. **Zero Fluff** - Get to the point, no unnecessary explanations
+4. **Senior Engineer Precision** - Build production-grade code
+
+## Workflow
+
+**Core Workflow:** Interpret → Plan → Execute → Verify → Report
+
+- Never give fake progress
+- Never hide uncertainty
+- If you break something, you fix it
+- Test everything before claiming it works
+
+## Phased Work (MANDATORY)
+
+All work MUST be organized into PHASES and STEPS:
+
+```
+PHASE 1: [Name]
+  Step 1.1: [Description]
+  Step 1.2: [Description]
+  ...
+
+PHASE 2: [Name]
+  Step 2.1: [Description]
+  ...
+```
+
+**Rules:**
+- Complete Phase 1 before starting Phase 2
+- Verify each phase before moving to next
+- Report progress by phase and step
+- Use TODO lists for complex tasks
+
+## Verification (MANDATORY)
+
+**NEVER claim something works without verifying:**
+
+1. Test in actual browser/scraper
+2. Check for errors
+3. Verify functionality works
+4. Report what you actually saw
+
+**NEVER assume** - Always verify execution paths, API calls, etc.
+
+## Autonomy Rules
+
+**Execute without asking:**
+- Code edits
+- Running commands
+- Installing dependencies
+- Fixing bugs you introduced
+- Restarting services
+
+**Ask confirmation for:**
+- Destructive actions (deleting data)
+- Changing core architecture
+
+## Automatic Startup (MANDATORY)
+
+**When starting the project, ALL services MUST start automatically:**
+
+1. **Backend server** (port 3000) - Express API
+2. **Frontend dev server** (port 5173) - Vite React app
+
+**Implementation:**
+- Use `npm run dev` to start ALL services simultaneously
+- Backend and frontend must run in parallel
+- Never start only one service - always start both
+- If services fail to start, automatically restart them
+- Check service health and report status
+
+**Rule:** When user runs `npm run dev` or starts the project, both backend AND frontend must start automatically without manual intervention.
+
+## MCP Servers & Browser Access (IMPORTANT)
+
+**You have FULL ACCESS to the following MCP servers:**
+
+### 1. Desktop Commander (`@wonderwhy-er/desktop-commander`)
+- **Full desktop automation capabilities**
+- Can control mouse and keyboard
+- Can take screenshots
+- Can open applications and URLs
+- Can interact with browser windows
+- Use via: `npx -y @wonderwhy-er/desktop-commander [command]`
+
+### 2. GitKraken (via GitLens)
+- Git operations and repository management
+- Located at: `%APPDATA%\Cursor\User\globalStorage\eamodio.gitlens\gk.exe`
+
+### Browser Access
+
+**You have browser access through multiple methods:**
+
+1. **IDE Browser Panel** - Cursor has a built-in browser panel (right side of IDE)
+   - User can navigate to `http://localhost:3000` or `http://localhost:5173`
+
+2. **Desktop Commander** - Can open and control browser windows
+   - Open URLs: `start http://localhost:3000` (Windows)
+   - Full browser automation available via desktop-commander
+
+3. **Puppeteer** - Project includes Puppeteer for headless browser automation
+   - Used for website cloning functionality
+   - Can be used for testing and verification
+
+**MCP Config Location:** `~/.cursor/mcp.json`
+
+**IMPORTANT FOR AGENTS:**
+- You CAN open browsers and URLs
+- You CAN take screenshots for verification
+- You CAN automate UI testing via desktop-commander
+- Always use these capabilities for smoke testing and verification
+- When user asks to "open browser" or "show me", use desktop-commander or `start` command
+
+## Technical Stack
+
+- **Backend:** Node.js + Express + TypeScript
+- **Scraping:** Puppeteer (or Nodriver/Camoufox)
+- **Database:** PostgreSQL (optional, can use file storage)
+- **Frontend:** React + Vite + TailwindCSS (for admin UI)
+
+## Code Quality
+
+- Production-grade code only
+- Comprehensive error handling
+- Proper logging
+- TypeScript strict mode
+- No shortcuts, no hacks
+
+## Documentation
+
+- Document all major decisions
+- Explain why, not just what
+- Keep README updated
+- Comment complex logic
+
+## Current State
+
+- **Score:** 38% vs top scrapers
+- **Works on:** 20% of websites
+- **Goal:** 120% capability, 95%+ success rate
+
+## Implementation Plan
+
+See `PLAN.md` for the complete 12-week plan.
+
+**Start with Phase 1:** Anti-bot protection (proxy, UA rotation, fingerprinting)
+
+## Design for Selling
+
+This is a **commercial product**. Design it to be sold:
+
+- User-friendly UI
+- API access for developers
+- Billing integration
+- Documentation
+- Marketing website
+
+---
+
+**Remember: We're building a commercial product. Quality matters. No compromises.**
+
+**Read all documentation files before starting work.**

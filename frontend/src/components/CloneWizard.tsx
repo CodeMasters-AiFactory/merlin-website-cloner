@@ -32,7 +32,7 @@ import {
   Eye,
   Save
 } from 'lucide-react';
-import { cloneWebsite } from '../utils/api';
+import { cloneWebsite, enhancedCloneWebsite, getEnhancedStatus, downloadCertificate } from '../utils/api';
 import api from '../utils/api';
 
 type WizardStep = 1 | 2 | 3 | 4;
@@ -43,6 +43,12 @@ interface CloneOptions {
   includeAssets: boolean;
   optimizeAssets: boolean;
   useCache: boolean;
+  // Enhanced features (world-class)
+  enableEnhanced?: boolean;
+  enableVisualVerification?: boolean;
+  enableDisasterRecoveryTest?: boolean;
+  enableCDNCache?: boolean;
+  generateCertificate?: boolean;
 }
 
 interface VerificationCheck {

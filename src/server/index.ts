@@ -39,6 +39,7 @@ import { ConfigManager } from '../services/configManager.js';
 import { PaymentService } from '../services/paymentService.js';
 import { merlinProxyNetwork } from '../services/proxyNetwork.js';
 import Stripe from 'stripe';
+import enhancedRoutes, { initializeEnhancedOrchestrator } from './enhancedRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -77,6 +78,14 @@ configManager.initialize().catch(() => {}); // Initialize async, don't block
 // Initialize our own proxy network (NO third-party providers!)
 merlinProxyNetwork.initialize().catch(() => {});
 console.log('🌐 Merlin Proxy Network initialized - Our own P2P network!');
+
+// Mount enhanced routes (world-class features)
+app.use('/api/enhanced', enhancedRoutes);
+
+// Initialize enhanced orchestrator in background
+initializeEnhancedOrchestrator().catch((err) => {
+  console.warn('Enhanced features initialization deferred:', err);
+});
 
 // Initialize payment service (only if Stripe key is provided)
 let paymentService: PaymentService | null = null;
@@ -179,6 +188,9 @@ app.post('/api/auth/signup', signupRateLimiter, authRateLimiter, async (req, res
 app.post('/api/auth/login', authRateLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
+    
+    // DEBUG: Log what's being received
+    console.log('[DEBUG LOGIN] Email:', email, '| Password length:', password?.length);
 
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });

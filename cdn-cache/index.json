@@ -1,0 +1,432 @@
+{
+  "urlMap": {
+    "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js",
+      "localPath": "cdn-cache\\libs\\jquery\\3.7.1\\jquery.min.js",
+      "hash": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a",
+      "size": 87533,
+      "mimeType": "application/javascript; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:04.295Z"
+    },
+    "https://code.jquery.com/jquery-3.7.1.min.js": {
+      "originalUrl": "https://code.jquery.com/jquery-3.7.1.min.js",
+      "localPath": "cdn-cache\\libs\\jquery\\3.7.1\\jquery-3.7.1.min.js",
+      "hash": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a",
+      "size": 87533,
+      "mimeType": "application/javascript; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:04.607Z"
+    },
+    "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js": {
+      "originalUrl": "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js",
+      "localPath": "cdn-cache\\libs\\jquery\\3.7.1\\jquery.min.js",
+      "hash": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a",
+      "size": 87533,
+      "mimeType": "text/javascript; charset=UTF-8",
+      "cachedAt": "2025-12-22T13:56:05.144Z"
+    },
+    "https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js",
+      "localPath": "cdn-cache\\libs\\react\\18.2.0\\react.production.min.js",
+      "hash": "4b4969fa4ef3594324da2c6d78ce8766fbbc2fd121fff395aedf997db0a99a06",
+      "size": 10737,
+      "mimeType": "application/javascript; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:05.215Z"
+    },
+    "https://unpkg.com/react@18/umd/react.production.min.js": {
+      "originalUrl": "https://unpkg.com/react@18/umd/react.production.min.js",
+      "localPath": "cdn-cache\\libs\\react\\18.2.0\\react.production.min.js",
+      "hash": "d949f1c3687aedadcedac85261865f29b17cd273997e7f6b2bfc53b2f9d4c4dd",
+      "size": 10751,
+      "mimeType": "text/javascript; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:06.912Z"
+    },
+    "https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js",
+      "localPath": "cdn-cache\\libs\\react-dom\\18.2.0\\react-dom.production.min.js",
+      "hash": "21758ed084cd0e37e735722ee4f3957ea960628a29dfa6c3ce1a1d47a2d6e4f7",
+      "size": 131882,
+      "mimeType": "application/javascript; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:06.996Z"
+    },
+    "https://unpkg.com/react-dom@18/umd/react-dom.production.min.js": {
+      "originalUrl": "https://unpkg.com/react-dom@18/umd/react-dom.production.min.js",
+      "localPath": "cdn-cache\\libs\\react-dom\\18.2.0\\react-dom.production.min.js",
+      "hash": "35f4f974f4b2bcd44da73963347f8952e341f83909e4498227d4e26b98f66f0d",
+      "size": 131835,
+      "mimeType": "text/javascript; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:07.406Z"
+    },
+    "https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js",
+      "localPath": "cdn-cache\\libs\\vue\\3.4.21\\vue.global.prod.min.js",
+      "hash": "173e4a0c8fa4c5af6ae229174a2841f0644f5b2a0c4f4cb5a49de418c15c17e4",
+      "size": 144109,
+      "mimeType": "application/javascript; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:07.469Z"
+    },
+    "https://unpkg.com/vue@3/dist/vue.global.prod.js": {
+      "originalUrl": "https://unpkg.com/vue@3/dist/vue.global.prod.js",
+      "localPath": "cdn-cache\\libs\\vue\\3.4.21\\vue.global.prod.js",
+      "hash": "b408034d07f7c8a91f117f9ea6272355ae45f55cbda1a4ad0704ad8d70398095",
+      "size": 161444,
+      "mimeType": "text/javascript; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:07.788Z"
+    },
+    "https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css",
+      "localPath": "cdn-cache\\libs\\bootstrap\\5.3.3\\bootstrap.min.css",
+      "hash": "3c8f27e6009ccfd710a905e6dcf12d0ee3c6f2ac7da05b0572d3e0d12e736fc8",
+      "size": 232803,
+      "mimeType": "text/css; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:07.855Z"
+    },
+    "https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js",
+      "localPath": "cdn-cache\\libs\\bootstrap\\5.3.3\\bootstrap.bundle.min.js",
+      "hash": "0833b2e9c3a26c258476c46266e6877fc75218625162e0460be9a3a098a61c6c",
+      "size": 80721,
+      "mimeType": "application/javascript; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:07.934Z"
+    },
+    "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css": {
+      "originalUrl": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css",
+      "localPath": "cdn-cache\\libs\\bootstrap\\5.3.3\\bootstrap.min.css",
+      "hash": "3c8f27e6009ccfd710a905e6dcf12d0ee3c6f2ac7da05b0572d3e0d12e736fc8",
+      "size": 232803,
+      "mimeType": "text/css; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:09.310Z"
+    },
+    "https://cdn.tailwindcss.com": {
+      "originalUrl": "https://cdn.tailwindcss.com",
+      "localPath": "cdn-cache\\libs\\tailwindcss\\3.4.1\\index.js",
+      "hash": "176e894661aa9cdc9a5cba6c720044cbbf7b8bd80d1c9a142a7c24b1b6c50d15",
+      "size": 407279,
+      "mimeType": "text/javascript",
+      "cachedAt": "2025-12-22T13:56:09.865Z"
+    },
+    "https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.4/css/bulma.min.css": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.4/css/bulma.min.css",
+      "localPath": "cdn-cache\\libs\\bulma\\0.9.4\\bulma.min.css",
+      "hash": "ad3a5d3b41d7042369ade00772eead0763e9839d79568fb91ad612b2734bcfef",
+      "size": 207302,
+      "mimeType": "text/css; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:11.070Z"
+    },
+    "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js",
+      "localPath": "cdn-cache\\libs\\lodash\\4.17.21\\lodash.min.js",
+      "hash": "a9705dfc47c0763380d851ab1801be6f76019f6b67e40e9b873f8b4a0603f7a9",
+      "size": 73015,
+      "mimeType": "application/javascript; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:11.134Z"
+    },
+    "https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.7/axios.min.js": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.7/axios.min.js",
+      "localPath": "cdn-cache\\libs\\axios\\1.6.7\\axios.min.js",
+      "hash": "3434b67595c68071824e142d077ce7e105d40ac40b15164896d11e54078d0213",
+      "size": 40997,
+      "mimeType": "application/javascript; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:11.214Z"
+    },
+    "https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js",
+      "localPath": "cdn-cache\\libs\\moment\\2.30.1\\moment.min.js",
+      "hash": "5b3eef58af8f051a73350fb530ccd1826e6a21ea840a60d5a9b81acb6d3823a0",
+      "size": 58912,
+      "mimeType": "application/javascript; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:11.291Z"
+    },
+    "https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js",
+      "localPath": "cdn-cache\\libs\\dayjs\\1.11.10\\dayjs.min.js",
+      "hash": "9cfdb93f38afcf2d076abecd66d32bfd3383cdf1967654ebc26a26605daf4173",
+      "size": 7160,
+      "mimeType": "application/javascript; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:11.372Z"
+    },
+    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css",
+      "localPath": "cdn-cache\\libs\\font-awesome\\6.5.1\\all.min.css",
+      "hash": "c22cfb6520a7fdbb738632834019acf47c78b1279462c0eb4cb83bae83ecb5a7",
+      "size": 102641,
+      "mimeType": "text/css; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:11.453Z"
+    },
+    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js",
+      "localPath": "cdn-cache\\libs\\font-awesome\\6.5.1\\all.min.js",
+      "hash": "24b8bce65fa6e4860f2dc4301e829475dbc971b0f49fafd9074da88ce03514c0",
+      "size": 1485776,
+      "mimeType": "application/javascript; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:11.624Z"
+    },
+    "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css",
+      "localPath": "cdn-cache\\libs\\bootstrap-icons\\1.11.3\\bootstrap-icons.min.css",
+      "hash": "f643d6fe7e679f9de3e16311600c5ef5cd6b098f7a3a8828fcc29255d2b33e62",
+      "size": 85875,
+      "mimeType": "text/css; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:11.699Z"
+    },
+    "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js",
+      "localPath": "cdn-cache\\libs\\gsap\\3.12.5\\gsap.min.js",
+      "hash": "28033e449a31ebcc396e5be8b13b63152bf03094288fb5867034321927bce087",
+      "size": 72214,
+      "mimeType": "application/javascript; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:11.773Z"
+    },
+    "https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css",
+      "localPath": "cdn-cache\\libs\\animate.css\\4.1.1\\animate.min.css",
+      "hash": "5fbaeb9f8e25d7e0143bae61d4b1802c16ce7390b96ceb2d498b0d96ff4c853f",
+      "size": 71750,
+      "mimeType": "text/css; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:11.868Z"
+    },
+    "https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css",
+      "localPath": "cdn-cache\\libs\\aos\\2.3.4\\aos.css",
+      "hash": "1aa8845fd06e475aefe733d4e55b36a92fcd487975049c8172341827ac9cc03e",
+      "size": 26053,
+      "mimeType": "text/css; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:11.932Z"
+    },
+    "https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js",
+      "localPath": "cdn-cache\\libs\\aos\\2.3.4\\aos.js",
+      "hash": "a5005b2e414770fd5ccb40bc221a12771966d02b5c1f9c89da48bd8e3811d377",
+      "size": 14690,
+      "mimeType": "application/javascript; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:12.017Z"
+    },
+    "https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js",
+      "localPath": "cdn-cache\\libs\\slick-carousel\\1.8.1\\slick.min.js",
+      "hash": "0c7178cc6ca34fb18e30f070a5e7a1c287b2d7ccfcba2cfdf06e0f46eda55740",
+      "size": 42863,
+      "mimeType": "application/javascript; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:14.015Z"
+    },
+    "https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css",
+      "localPath": "cdn-cache\\libs\\slick-carousel\\1.8.1\\slick.min.css",
+      "hash": "50ad448a8a5720bf8a5617db15af31ae60163de06331576f60c6244c012ffc72",
+      "size": 1369,
+      "mimeType": "text/css; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:14.092Z"
+    },
+    "https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/js/lightbox.min.js": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/js/lightbox.min.js",
+      "localPath": "cdn-cache\\libs\\lightbox2\\2.11.4\\lightbox.min.js",
+      "hash": "4c3000fc761e6bb8b60bf559c19ee4c349934d40280d5ba9f6c309f4a95585bb",
+      "size": 9754,
+      "mimeType": "application/javascript; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:14.176Z"
+    },
+    "https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css",
+      "localPath": "cdn-cache\\libs\\lightbox2\\2.11.4\\lightbox.min.css",
+      "hash": "b41c65a254473fdb8cb0414a564fa193ffde90e9573a2c4b2afc9ee56d964797",
+      "size": 2532,
+      "mimeType": "text/css; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:14.252Z"
+    },
+    "https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js",
+      "localPath": "cdn-cache\\libs\\d3\\7.8.5\\d3.min.js",
+      "hash": "d6b03aefc9f6c44c7bc78713679c78c295028fa914319119e5cc4b4954855b1c",
+      "size": 279633,
+      "mimeType": "application/javascript; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:14.898Z"
+    },
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js",
+      "localPath": "cdn-cache\\libs\\leaflet\\1.9.4\\leaflet.min.js",
+      "hash": "5c9aecfc30e4564519dbdcddcc53a418227dcc7568e619e9762ddcec7609ed47",
+      "size": 147171,
+      "mimeType": "application/javascript; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:14.989Z"
+    },
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css",
+      "localPath": "cdn-cache\\libs\\leaflet\\1.9.4\\leaflet.min.css",
+      "hash": "b570abbda963c60b4de4b4ff4b26f9326f53fb2ccf1461fdf0955ca094fb2539",
+      "size": 10879,
+      "mimeType": "text/css; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:15.058Z"
+    },
+    "https://cdnjs.cloudflare.com/ajax/libs/video.js/8.10.0/video.min.js": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/video.js/8.10.0/video.min.js",
+      "localPath": "cdn-cache\\libs\\video.js\\8.10.0\\video.min.js",
+      "hash": "0957d68a4f0298bad4d37b150b48cbb022f62ac9b660df7056dd6194f69e4dc0",
+      "size": 634005,
+      "mimeType": "application/javascript; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:15.154Z"
+    },
+    "https://cdnjs.cloudflare.com/ajax/libs/video.js/8.10.0/video-js.min.css": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/video.js/8.10.0/video-js.min.css",
+      "localPath": "cdn-cache\\libs\\video.js\\8.10.0\\video-js.min.css",
+      "hash": "87590de8c7bcfa547adf9a7924bdb91a1733cb7ac308c40d5bbff34f82734dd9",
+      "size": 45760,
+      "mimeType": "text/css; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:15.217Z"
+    },
+    "https://cdnjs.cloudflare.com/ajax/libs/plyr/3.7.8/plyr.min.js": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/plyr/3.7.8/plyr.min.js",
+      "localPath": "cdn-cache\\libs\\plyr\\3.7.8\\plyr.min.js",
+      "hash": "ae7266d9eb50c1614c4f425edba8b3aa805b8b22c97cbbd360ae9a0ea47c02ad",
+      "size": 113187,
+      "mimeType": "application/javascript; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:15.293Z"
+    },
+    "https://cdnjs.cloudflare.com/ajax/libs/plyr/3.7.8/plyr.min.css": {
+      "originalUrl": "https://cdnjs.cloudflare.com/ajax/libs/plyr/3.7.8/plyr.min.css",
+      "localPath": "cdn-cache\\libs\\plyr\\3.7.8\\plyr.min.css",
+      "hash": "6bfc1e307a874e08da7f2529dd89cca1e4a213d32cc06afaa1086ed85179d8b1",
+      "size": 32526,
+      "mimeType": "text/css; charset=utf-8",
+      "cachedAt": "2025-12-22T13:56:15.371Z"
+    }
+  },
+  "stats": {
+    "totalLibraries": 26,
+    "totalFiles": 36,
+    "totalSize": 5373027,
+    "lastUpdated": "2025-12-22T13:56:15.872Z",
+    "hitRate": 0,
+    "missRate": 0
+  },
+  "libraries": [
+    {
+      "name": "jquery",
+      "version": "3.7.1",
+      "category": "framework"
+    },
+    {
+      "name": "react",
+      "version": "18.2.0",
+      "category": "framework"
+    },
+    {
+      "name": "react-dom",
+      "version": "18.2.0",
+      "category": "framework"
+    },
+    {
+      "name": "vue",
+      "version": "3.4.21",
+      "category": "framework"
+    },
+    {
+      "name": "bootstrap",
+      "version": "5.3.3",
+      "category": "css"
+    },
+    {
+      "name": "tailwindcss",
+      "version": "3.4.1",
+      "category": "css"
+    },
+    {
+      "name": "bulma",
+      "version": "0.9.4",
+      "category": "css"
+    },
+    {
+      "name": "lodash",
+      "version": "4.17.21",
+      "category": "utility"
+    },
+    {
+      "name": "axios",
+      "version": "1.6.7",
+      "category": "utility"
+    },
+    {
+      "name": "moment",
+      "version": "2.30.1",
+      "category": "utility"
+    },
+    {
+      "name": "dayjs",
+      "version": "1.11.10",
+      "category": "utility"
+    },
+    {
+      "name": "font-awesome",
+      "version": "6.5.1",
+      "category": "icon"
+    },
+    {
+      "name": "bootstrap-icons",
+      "version": "1.11.3",
+      "category": "icon"
+    },
+    {
+      "name": "gsap",
+      "version": "3.12.5",
+      "category": "animation"
+    },
+    {
+      "name": "animate.css",
+      "version": "4.1.1",
+      "category": "animation"
+    },
+    {
+      "name": "aos",
+      "version": "2.3.4",
+      "category": "animation"
+    },
+    {
+      "name": "swiper",
+      "version": "11.0.6",
+      "category": "ui"
+    },
+    {
+      "name": "slick-carousel",
+      "version": "1.8.1",
+      "category": "ui"
+    },
+    {
+      "name": "lightbox2",
+      "version": "2.11.4",
+      "category": "ui"
+    },
+    {
+      "name": "chart.js",
+      "version": "4.4.2",
+      "category": "chart"
+    },
+    {
+      "name": "d3",
+      "version": "7.8.5",
+      "category": "chart"
+    },
+    {
+      "name": "leaflet",
+      "version": "1.9.4",
+      "category": "map"
+    },
+    {
+      "name": "video.js",
+      "version": "8.10.0",
+      "category": "video"
+    },
+    {
+      "name": "plyr",
+      "version": "3.7.8",
+      "category": "video"
+    },
+    {
+      "name": "inputmask",
+      "version": "5.0.8",
+      "category": "form"
+    },
+    {
+      "name": "gtag-stub",
+      "version": "1.0.0",
+      "category": "analytics"
+    }
+  ]
+}

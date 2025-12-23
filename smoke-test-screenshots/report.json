@@ -1,0 +1,85 @@
+{
+  "timestamp": "2025-12-22T14:01:39.046Z",
+  "summary": {
+    "total": 14,
+    "passed": 12,
+    "failed": 2,
+    "successRate": 85.71428571428571
+  },
+  "results": [
+    {
+      "name": "Landing Page Loads",
+      "status": "PASS",
+      "duration": 2512
+    },
+    {
+      "name": "Navigation Links",
+      "status": "PASS",
+      "duration": 1688
+    },
+    {
+      "name": "Signup Page",
+      "status": "PASS",
+      "duration": 942
+    },
+    {
+      "name": "Signup Flow",
+      "status": "PASS",
+      "duration": 3390
+    },
+    {
+      "name": "Login Page",
+      "status": "PASS",
+      "duration": 859
+    },
+    {
+      "name": "Login Flow",
+      "status": "PASS",
+      "duration": 3172
+    },
+    {
+      "name": "Dashboard Access",
+      "status": "FAIL",
+      "duration": 1070,
+      "error": "Failed to execute 'querySelectorAll' on 'Document': 'button:has-text(\"Clone\"), button:has-text(\"New\"), [data-testid=\"clone-button\"]' is not a valid selector.\nre (pptr:internal:3:12826)\nIe (pptr:internal:3:13100)\npptr:evaluateHandle;PQueryHandler.queryOne%20(file%3A%2F%2F%2FC%3A%2FCursor%2520Projects%2FMerlin%2520website%2520clone%2Fnode_modules%2Fpuppeteer-core%2Flib%2Fesm%2Fpuppeteer%2Fcommon%2FQueryHandler.js%3A127%3A73):2:16",
+      "screenshot": "1766412088050-error-Dashboard-Access.png"
+    },
+    {
+      "name": "Clone Modal",
+      "status": "PASS",
+      "duration": 2097
+    },
+    {
+      "name": "Clone Website",
+      "status": "PASS",
+      "duration": 1886
+    },
+    {
+      "name": "Pricing Page",
+      "status": "PASS",
+      "duration": 1164
+    },
+    {
+      "name": "All Buttons",
+      "status": "PASS",
+      "duration": 677
+    },
+    {
+      "name": "Responsive Design",
+      "status": "PASS",
+      "duration": 4520
+    },
+    {
+      "name": "API Health Check",
+      "status": "PASS",
+      "duration": 31
+    },
+    {
+      "name": "API Authentication",
+      "status": "FAIL",
+      "duration": 7,
+      "error": "Auth API failed: 401",
+      "screenshot": "1766412098617-error-API-Authentication.png"
+    }
+  ]
+}
