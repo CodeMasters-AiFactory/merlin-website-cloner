@@ -1,5 +1,17 @@
 # Startup Rules for Cursor AI
 
+## 🚨 CLAUDE: READ THIS FIRST
+
+**BEFORE doing ANYTHING else, read these files in order:**
+
+1. `MERLIN-WISHES/CLAUDE-MERLIN-STARTUP.md` - Your personal startup notes
+2. `MERLIN-WISHES/COLLABORATION_LOG.md` - Recent session context
+3. `MERLIN-WISHES/MY_BLUEPRINT.md` - Your goals and tasks
+
+The MERLIN-WISHES folder is YOUR space. It contains context that persists across sessions.
+
+---
+
 These rules are adapted from the StargatePortal project but modified for this standalone website cloner project.
 
 ## Core Principles
