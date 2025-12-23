@@ -1,390 +1,2188 @@
 {
   "project": "Merlin Website Cloner",
-  "linear_project_id": "0ece2f30-0273-4635-aa00-06dcfb79b201",
-  "linear_url": "https://linear.app/code-masters/project/merlin-website-cloner-0102a6dc2777",
-  "last_updated": "2025-12-22T11:45:00Z",
-  "total_features": 42,
-  "completed_features": 18,
+  "version": "2.0.0",
+  "created": "2024-12-23",
+  "lastUpdated": "2024-12-23",
+  "totalFeatures": 210,
+  "completedFeatures": 0,
+  "linearProject": "https://linear.app/code-masters/project/merlin-website-cloner-0102a6dc2777",
+  "github": "https://github.com/CodeMasters-AiFactory/merlin-website-cloner",
+  
+  "categories": [
+    {
+      "id": "COD-11",
+      "name": "Security Hardening",
+      "priority": "URGENT",
+      "totalFeatures": 25,
+      "completedFeatures": 0
+    },
+    {
+      "id": "COD-9",
+      "name": "PostgreSQL Database",
+      "priority": "HIGH",
+      "totalFeatures": 30,
+      "completedFeatures": 0
+    },
+    {
+      "id": "COD-10",
+      "name": "Stripe Payments",
+      "priority": "HIGH",
+      "totalFeatures": 28,
+      "completedFeatures": 0
+    },
+    {
+      "id": "COD-12",
+      "name": "Docker & CI/CD",
+      "priority": "HIGH",
+      "totalFeatures": 22,
+      "completedFeatures": 0
+    },
+    {
+      "id": "COD-14",
+      "name": "Legal Compliance",
+      "priority": "HIGH",
+      "totalFeatures": 18,
+      "completedFeatures": 0
+    },
+    {
+      "id": "COD-13",
+      "name": "Test Coverage",
+      "priority": "MEDIUM",
+      "totalFeatures": 35,
+      "completedFeatures": 0
+    },
+    {
+      "id": "UI",
+      "name": "UI/UX Improvements",
+      "priority": "MEDIUM",
+      "totalFeatures": 25,
+      "completedFeatures": 0
+    },
+    {
+      "id": "PERF",
+      "name": "Performance",
+      "priority": "MEDIUM",
+      "totalFeatures": 15,
+      "completedFeatures": 0
+    },
+    {
+      "id": "CLONE",
+      "name": "Clone Engine",
+      "priority": "HIGH",
+      "totalFeatures": 12,
+      "completedFeatures": 0
+    }
+  ],
+
   "features": [
+    
     {
       "id": "COD-11-001",
-      "linear_issue": "COD-11",
-      "category": "security",
-      "priority": "urgent",
-      "description": "Move JWT secret from hardcoded value to environment variable",
-      "file": "src/server/auth.ts",
-      "steps": ["Locate hardcoded JWT_SECRET in auth.ts", "Replace with process.env.JWT_SECRET", "Add JWT_SECRET to .env.example", "Add validation to fail startup if JWT_SECRET not set", "Test authentication still works"],
-      "passes": true
+      "category": "Security",
+      "linearIssue": "COD-11",
+      "description": "Move JWT_SECRET to environment variable",
+      "acceptance": "JWT secret reads from process.env.JWT_SECRET",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["unit", "manual"]
     },
     {
       "id": "COD-11-002",
-      "linear_issue": "COD-11",
-      "category": "security",
-      "priority": "urgent",
-      "description": "Replace simple hash with bcrypt for password hashing",
-      "file": "src/server/auth.ts",
-      "steps": ["Install bcrypt package", "Replace hashPassword to use bcrypt.hash with salt 12", "Replace comparePassword to use bcrypt.compare", "Test login/register works"],
-      "passes": true
+      "category": "Security",
+      "linearIssue": "COD-11",
+      "description": "Add .env.example with all required variables",
+      "acceptance": ".env.example exists with placeholder values",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
     },
     {
       "id": "COD-11-003",
-      "linear_issue": "COD-11",
-      "category": "security",
-      "priority": "urgent",
-      "description": "Add rate limiting to API endpoints",
-      "file": "src/server/index.ts",
-      "steps": ["Install express-rate-limit", "Create rate limit middleware (100 req/15min)", "Stricter limit on auth (10/15min)", "Limit clone endpoints (20/hour)", "Test limits work"],
-      "passes": true
+      "category": "Security",
+      "linearIssue": "COD-11",
+      "description": "Validate JWT_SECRET exists on startup",
+      "acceptance": "Server throws error if JWT_SECRET missing",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["unit", "manual"]
     },
     {
       "id": "COD-11-004",
-      "linear_issue": "COD-11",
-      "category": "security", 
-      "priority": "urgent",
-      "description": "Configure CORS to restrict allowed origins",
-      "file": "src/server/index.ts",
-      "steps": ["Add ALLOWED_ORIGINS env var", "Configure CORS with specific origins", "Test frontend connects", "Verify random origins blocked"],
-      "passes": true
+      "category": "Security",
+      "linearIssue": "COD-11",
+      "description": "Install bcrypt for password hashing",
+      "acceptance": "bcrypt in package.json dependencies",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
     },
     {
       "id": "COD-11-005",
-      "linear_issue": "COD-11",
-      "category": "security",
-      "priority": "urgent",
-      "description": "Add input validation for clone URLs",
-      "file": "src/server/services/websiteCloner.ts",
-      "steps": ["Install validator package", "Add URL validation", "Block private IPs/localhost", "Block dangerous protocols", "Test validation"],
-      "passes": true
+      "category": "Security",
+      "linearIssue": "COD-11",
+      "description": "Hash passwords on user registration",
+      "acceptance": "Passwords stored as bcrypt hashes (12 rounds)",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["unit", "integration"]
     },
     {
       "id": "COD-11-006",
-      "linear_issue": "COD-11",
-      "category": "security",
-      "priority": "urgent",
-      "description": "Add Helmet.js for security headers",
-      "file": "src/server/index.ts",
-      "steps": ["Install helmet", "Add helmet middleware", "Configure CSP", "Test headers set", "Verify app works"],
-      "passes": true
+      "category": "Security",
+      "linearIssue": "COD-11",
+      "description": "Verify password with bcrypt on login",
+      "acceptance": "Login compares hash correctly",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["unit", "integration"]
     },
     {
-      "id": "COD-9-001",
-      "linear_issue": "COD-9",
-      "category": "database",
-      "priority": "high",
-      "description": "Install and configure Prisma ORM",
-      "file": "package.json",
-      "steps": ["npm install prisma @prisma/client", "npx prisma init", "Configure DATABASE_URL in .env", "Verify prisma folder created"],
-      "passes": false
+      "id": "COD-11-007",
+      "category": "Security",
+      "linearIssue": "COD-11",
+      "description": "Install express-rate-limit",
+      "acceptance": "express-rate-limit in package.json",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
     },
     {
-      "id": "COD-9-002",
-      "linear_issue": "COD-9",
-      "category": "database",
-      "priority": "high",
+      "id": "COD-11-008",
+      "category": "Security",
+      "linearIssue": "COD-11",
+      "description": "Add rate limiting to /api/auth/login",
+      "acceptance": "Max 5 attempts per 15 minutes per IP",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["unit", "manual"]
+    },
+    {
+      "id": "COD-11-009",
+      "category": "Security",
+      "linearIssue": "COD-11",
+      "description": "Add rate limiting to /api/auth/register",
+      "acceptance": "Max 3 registrations per hour per IP",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["unit", "manual"]
+    },
+    {
+      "id": "COD-11-010",
+      "category": "Security",
+      "linearIssue": "COD-11",
+      "description": "Add rate limiting to /api/clone",
+      "acceptance": "Max 10 clones per hour per user",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["unit", "manual"]
+    },
+    {
+      "id": "COD-11-011",
+      "category": "Security",
+      "linearIssue": "COD-11",
+      "description": "Install express-validator",
+      "acceptance": "express-validator in package.json",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-11-012",
+      "category": "Security",
+      "linearIssue": "COD-11",
+      "description": "Validate email format on registration",
+      "acceptance": "Invalid emails rejected with 400 error",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["unit", "integration"]
+    },
+    {
+      "id": "COD-11-013",
+      "category": "Security",
+      "linearIssue": "COD-11",
+      "description": "Validate password strength on registration",
+      "acceptance": "Min 8 chars, 1 uppercase, 1 number required",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["unit", "integration"]
+    },
+    {
+      "id": "COD-11-014",
+      "category": "Security",
+      "linearIssue": "COD-11",
+      "description": "Sanitize URL input for clone requests",
+      "acceptance": "XSS/injection attempts blocked",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["unit", "integration"]
+    },
+    {
+      "id": "COD-11-015",
+      "category": "Security",
+      "linearIssue": "COD-11",
+      "description": "Add helmet.js for HTTP headers",
+      "acceptance": "Security headers present in responses",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["unit", "manual"]
+    },
+    {
+      "id": "COD-11-016",
+      "category": "Security",
+      "linearIssue": "COD-11",
+      "description": "Configure CORS properly",
+      "acceptance": "Only allowed origins can access API",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["unit", "manual"]
+    },
+    {
+      "id": "COD-11-017",
+      "category": "Security",
+      "linearIssue": "COD-11",
+      "description": "Add CSRF protection",
+      "acceptance": "CSRF tokens required for mutations",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-11-018",
+      "category": "Security",
+      "linearIssue": "COD-11",
+      "description": "Implement JWT refresh tokens",
+      "acceptance": "Access token expires in 15min, refresh in 7 days",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["unit", "integration"]
+    },
+    {
+      "id": "COD-11-019",
+      "category": "Security",
+      "linearIssue": "COD-11",
+      "description": "Add token blacklist for logout",
+      "acceptance": "Logged out tokens cannot be reused",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-11-020",
+      "category": "Security",
+      "linearIssue": "COD-11",
+      "description": "Implement secure password reset flow",
+      "acceptance": "Reset token expires in 1 hour, single use",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration", "e2e"]
+    },
+    {
+      "id": "COD-11-021",
+      "category": "Security",
+      "linearIssue": "COD-11",
+      "description": "Add SQL injection prevention",
+      "acceptance": "All queries use parameterized statements",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["unit", "integration"]
+    },
+    {
+      "id": "COD-11-022",
+      "category": "Security",
+      "linearIssue": "COD-11",
+      "description": "Implement request size limits",
+      "acceptance": "Max 10MB request body",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["unit"]
+    },
+    {
+      "id": "COD-11-023",
+      "category": "Security",
+      "linearIssue": "COD-11",
+      "description": "Add audit logging for auth events",
+      "acceptance": "Login/logout/register logged with IP",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-11-024",
+      "category": "Security",
+      "linearIssue": "COD-11",
+      "description": "Implement account lockout after failed attempts",
+      "acceptance": "Account locked after 5 failed logins for 30min",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-11-025",
+      "category": "Security",
+      "linearIssue": "COD-11",
+      "description": "Add security headers for file downloads",
+      "acceptance": "Content-Disposition and X-Content-Type-Options set",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["unit"]
+    },
+
+    {
+      "id": "COD-09-001",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Install Prisma ORM",
+      "acceptance": "prisma and @prisma/client in package.json",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-09-002",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Initialize Prisma with PostgreSQL",
+      "acceptance": "prisma/schema.prisma exists with postgresql provider",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-09-003",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Add DATABASE_URL to environment",
+      "acceptance": "DATABASE_URL in .env and .env.example",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-09-004",
+      "category": "Database",
+      "linearIssue": "COD-9",
       "description": "Create User model in Prisma schema",
-      "file": "prisma/schema.prisma",
-      "steps": ["Define User model with id, email, password, createdAt", "Add subscription tier field", "Add usage tracking fields", "Run prisma generate"],
-      "passes": false
+      "acceptance": "User model with id, email, password, createdAt",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
     },
     {
-      "id": "COD-9-003",
-      "linear_issue": "COD-9",
-      "category": "database",
-      "priority": "high",
-      "description": "Create CloneJob model in Prisma schema",
-      "file": "prisma/schema.prisma",
-      "steps": ["Define CloneJob model with id, url, status, userId", "Add progress and result fields", "Add relation to User", "Run prisma generate"],
-      "passes": false
+      "id": "COD-09-005",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Add email uniqueness constraint",
+      "acceptance": "@unique on email field",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
     },
     {
-      "id": "COD-9-004",
-      "linear_issue": "COD-9",
-      "category": "database",
-      "priority": "high",
-      "description": "Create Transaction model for payments",
-      "file": "prisma/schema.prisma",
-      "steps": ["Define Transaction model", "Link to User", "Add Stripe fields", "Run prisma generate"],
-      "passes": false
+      "id": "COD-09-006",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Create CloneJob model",
+      "acceptance": "CloneJob with id, url, status, userId, createdAt",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
     },
     {
-      "id": "COD-9-005",
-      "linear_issue": "COD-9",
-      "category": "database",
-      "priority": "high",
-      "description": "Create and run initial migration",
-      "file": "prisma/migrations",
-      "steps": ["npx prisma migrate dev --name init", "Verify tables created", "Check migration files"],
-      "passes": false
+      "id": "COD-09-007",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Add User-CloneJob relation",
+      "acceptance": "User has many CloneJobs",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
     },
     {
-      "id": "COD-9-006",
-      "linear_issue": "COD-9",
-      "category": "database",
-      "priority": "high",
-      "description": "Create Prisma client singleton",
-      "file": "src/server/database.ts",
-      "steps": ["Create prisma client instance", "Add connection pooling config", "Export for use in services", "Test connection"],
-      "passes": false
+      "id": "COD-09-008",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Create Subscription model",
+      "acceptance": "Subscription with plan, status, stripeId",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
     },
     {
-      "id": "COD-9-007",
-      "linear_issue": "COD-9",
-      "category": "database",
-      "priority": "high",
-      "description": "Migrate user operations to Prisma",
-      "file": "src/server/auth.ts",
-      "steps": ["Replace in-memory user storage", "Use prisma.user.create for registration", "Use prisma.user.findUnique for login", "Test auth flow"],
-      "passes": false
+      "id": "COD-09-009",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Add User-Subscription relation",
+      "acceptance": "User has one Subscription",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
     },
     {
-      "id": "COD-9-008",
-      "linear_issue": "COD-9",
-      "category": "database",
-      "priority": "high",
-      "description": "Migrate job operations to Prisma",
-      "file": "src/server/services/jobManager.ts",
-      "steps": ["Replace in-memory job storage", "Use prisma for job CRUD", "Update job status methods", "Test job tracking"],
-      "passes": false
+      "id": "COD-09-010",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Create Payment model",
+      "acceptance": "Payment with amount, currency, stripePaymentId",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
     },
+    {
+      "id": "COD-09-011",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Run initial migration",
+      "acceptance": "npx prisma migrate dev creates tables",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-09-012",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Generate Prisma client",
+      "acceptance": "npx prisma generate succeeds",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-09-013",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Create database connection singleton",
+      "acceptance": "src/lib/prisma.ts with singleton pattern",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["unit"]
+    },
+    {
+      "id": "COD-09-014",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Migrate auth service to use Prisma",
+      "acceptance": "Auth reads/writes users from PostgreSQL",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-09-015",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Migrate clone jobs to use Prisma",
+      "acceptance": "Clone jobs stored in PostgreSQL",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-09-016",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Add database indexes for performance",
+      "acceptance": "Index on email, userId, createdAt",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-09-017",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Add soft delete support",
+      "acceptance": "deletedAt field, queries filter deleted",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["unit"]
+    },
+    {
+      "id": "COD-09-018",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Create database seed script",
+      "acceptance": "npx prisma db seed creates test data",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-09-019",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Add connection pooling",
+      "acceptance": "Connection limit configured for production",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-09-020",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Create CloneAsset model",
+      "acceptance": "Track individual assets (images, css, js) per job",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-09-021",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Add CloneJob-CloneAsset relation",
+      "acceptance": "CloneJob has many CloneAssets",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-09-022",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Create AuditLog model",
+      "acceptance": "Track user actions with timestamps",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-09-023",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Add database health check endpoint",
+      "acceptance": "/api/health/db returns connection status",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-09-024",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Implement database backup script",
+      "acceptance": "pg_dump script for daily backups",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-09-025",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Add migration rollback documentation",
+      "acceptance": "README explains rollback procedure",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-09-026",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Create enum for CloneJob status",
+      "acceptance": "PENDING, RUNNING, COMPLETED, FAILED enum",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-09-027",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Create enum for Subscription plan",
+      "acceptance": "FREE, STARTER, PRO, ENTERPRISE enum",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-09-028",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Add cascading deletes where appropriate",
+      "acceptance": "Deleting user cascades to their jobs",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-09-029",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Create test database configuration",
+      "acceptance": "Separate test DB in test environment",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-09-030",
+      "category": "Database",
+      "linearIssue": "COD-9",
+      "description": "Document all Prisma models",
+      "acceptance": "/// comments on all models and fields",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+
     {
       "id": "COD-10-001",
-      "linear_issue": "COD-10",
-      "category": "payments",
-      "priority": "high",
-      "description": "Configure Stripe SDK properly",
-      "file": "src/server/services/paymentService.ts",
-      "steps": ["Verify Stripe keys in env", "Initialize Stripe with API version", "Add error handling", "Test Stripe connection"],
-      "passes": true
+      "category": "Payments",
+      "linearIssue": "COD-10",
+      "description": "Install Stripe SDK",
+      "acceptance": "stripe in package.json",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
     },
     {
       "id": "COD-10-002",
-      "linear_issue": "COD-10",
-      "category": "payments",
-      "priority": "high",
-      "description": "Create Stripe checkout session endpoint",
-      "file": "src/server/routes/payments.ts",
-      "steps": ["Create POST /api/checkout endpoint", "Generate checkout session with price", "Return session URL", "Test checkout flow"],
-      "passes": true
+      "category": "Payments",
+      "linearIssue": "COD-10",
+      "description": "Add Stripe API keys to environment",
+      "acceptance": "STRIPE_SECRET_KEY and STRIPE_PUBLISHABLE_KEY in .env",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
     },
     {
       "id": "COD-10-003",
-      "linear_issue": "COD-10",
-      "category": "payments",
-      "priority": "high",
-      "description": "Set up Stripe webhook endpoint",
-      "file": "src/server/routes/webhooks.ts",
-      "steps": ["Create POST /api/webhooks/stripe", "Verify webhook signature", "Parse event types", "Add raw body parser"],
-      "passes": true
+      "category": "Payments",
+      "linearIssue": "COD-10",
+      "description": "Create Stripe client singleton",
+      "acceptance": "src/lib/stripe.ts with initialized Stripe client",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["unit"]
     },
     {
       "id": "COD-10-004",
-      "linear_issue": "COD-10",
-      "category": "payments",
-      "priority": "high",
-      "description": "Handle checkout.session.completed webhook",
-      "file": "src/server/routes/webhooks.ts",
-      "steps": ["Extract customer and subscription data", "Update user subscription tier", "Record transaction in database", "Send confirmation email"],
-      "passes": true
+      "category": "Payments",
+      "linearIssue": "COD-10",
+      "description": "Define pricing plans in config",
+      "acceptance": "src/config/pricing.ts with plan definitions",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
     },
     {
       "id": "COD-10-005",
-      "linear_issue": "COD-10",
-      "category": "payments",
-      "priority": "high",
-      "description": "Handle subscription.updated webhook",
-      "file": "src/server/routes/webhooks.ts",
-      "steps": ["Detect plan changes", "Update user tier accordingly", "Handle upgrades/downgrades", "Log changes"],
-      "passes": true
+      "category": "Payments",
+      "linearIssue": "COD-10",
+      "description": "Create Stripe products in dashboard",
+      "acceptance": "Products created for each plan in Stripe",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
     },
     {
       "id": "COD-10-006",
-      "linear_issue": "COD-10",
-      "category": "payments",
-      "priority": "high",
-      "description": "Handle subscription.deleted webhook",
-      "file": "src/server/routes/webhooks.ts",
-      "steps": ["Detect cancellation", "Downgrade user to free tier", "Update database", "Send notification"],
-      "passes": true
+      "category": "Payments",
+      "linearIssue": "COD-10",
+      "description": "Create Stripe prices for products",
+      "acceptance": "Monthly prices for each product",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
     },
     {
       "id": "COD-10-007",
-      "linear_issue": "COD-10",
-      "category": "payments",
-      "priority": "high",
-      "description": "Enforce page limits based on subscription",
-      "file": "src/server/services/websiteCloner.ts",
-      "steps": ["Check user tier before clone", "Apply page limits per tier", "Return error if exceeded", "Show upgrade prompt"],
-      "passes": true
+      "category": "Payments",
+      "linearIssue": "COD-10",
+      "description": "Create checkout session endpoint",
+      "acceptance": "POST /api/payments/create-checkout-session",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
     },
     {
       "id": "COD-10-008",
-      "linear_issue": "COD-10",
-      "category": "payments",
-      "priority": "high",
-      "description": "Create billing portal endpoint",
-      "file": "src/server/routes/payments.ts",
-      "steps": ["Create GET /api/billing-portal", "Generate Stripe portal session", "Return portal URL", "Test portal access"],
-      "passes": true
+      "category": "Payments",
+      "linearIssue": "COD-10",
+      "description": "Create customer portal endpoint",
+      "acceptance": "POST /api/payments/create-portal-session",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
     },
     {
+      "id": "COD-10-009",
+      "category": "Payments",
+      "linearIssue": "COD-10",
+      "description": "Implement Stripe webhook handler",
+      "acceptance": "POST /api/webhooks/stripe handles events",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-10-010",
+      "category": "Payments",
+      "linearIssue": "COD-10",
+      "description": "Handle checkout.session.completed",
+      "acceptance": "Creates subscription on successful payment",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-10-011",
+      "category": "Payments",
+      "linearIssue": "COD-10",
+      "description": "Handle invoice.paid",
+      "acceptance": "Updates subscription status on payment",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-10-012",
+      "category": "Payments",
+      "linearIssue": "COD-10",
+      "description": "Handle invoice.payment_failed",
+      "acceptance": "Marks subscription as past_due",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-10-013",
+      "category": "Payments",
+      "linearIssue": "COD-10",
+      "description": "Handle customer.subscription.deleted",
+      "acceptance": "Removes subscription on cancellation",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-10-014",
+      "category": "Payments",
+      "linearIssue": "COD-10",
+      "description": "Verify webhook signatures",
+      "acceptance": "Invalid signatures rejected with 400",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["unit"]
+    },
+    {
+      "id": "COD-10-015",
+      "category": "Payments",
+      "linearIssue": "COD-10",
+      "description": "Create pricing page component",
+      "acceptance": "Frontend shows all plans with prices",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "COD-10-016",
+      "category": "Payments",
+      "linearIssue": "COD-10",
+      "description": "Add checkout button to pricing page",
+      "acceptance": "Click redirects to Stripe Checkout",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "COD-10-017",
+      "category": "Payments",
+      "linearIssue": "COD-10",
+      "description": "Create success page after checkout",
+      "acceptance": "/payment/success shows confirmation",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "COD-10-018",
+      "category": "Payments",
+      "linearIssue": "COD-10",
+      "description": "Create cancel page for abandoned checkout",
+      "acceptance": "/payment/cancel shows message",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "COD-10-019",
+      "category": "Payments",
+      "linearIssue": "COD-10",
+      "description": "Display current subscription in dashboard",
+      "acceptance": "Dashboard shows plan name and status",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "COD-10-020",
+      "category": "Payments",
+      "linearIssue": "COD-10",
+      "description": "Add manage subscription button",
+      "acceptance": "Opens Stripe Customer Portal",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "COD-10-021",
+      "category": "Payments",
+      "linearIssue": "COD-10",
+      "description": "Implement usage limits by plan",
+      "acceptance": "FREE: 5 clones/month, PRO: unlimited",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-10-022",
+      "category": "Payments",
+      "linearIssue": "COD-10",
+      "description": "Show usage counter in dashboard",
+      "acceptance": "Displays clones used / limit",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "COD-10-023",
+      "category": "Payments",
+      "linearIssue": "COD-10",
+      "description": "Block clone when limit reached",
+      "acceptance": "403 error with upgrade prompt",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-10-024",
+      "category": "Payments",
+      "linearIssue": "COD-10",
+      "description": "Reset usage counter monthly",
+      "acceptance": "Counter resets on billing cycle",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-10-025",
+      "category": "Payments",
+      "linearIssue": "COD-10",
+      "description": "Add trial period support",
+      "acceptance": "14-day trial for new subscriptions",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-10-026",
+      "category": "Payments",
+      "linearIssue": "COD-10",
+      "description": "Send receipt emails via Stripe",
+      "acceptance": "Stripe configured to send receipts",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-10-027",
+      "category": "Payments",
+      "linearIssue": "COD-10",
+      "description": "Handle subscription upgrade/downgrade",
+      "acceptance": "Plan changes prorated correctly",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-10-028",
+      "category": "Payments",
+      "linearIssue": "COD-10",
+      "description": "Add Stripe test mode toggle",
+      "acceptance": "Environment variable switches modes",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+
+    {
       "id": "COD-12-001",
-      "linear_issue": "COD-12",
-      "category": "devops",
-      "priority": "high",
+      "category": "DevOps",
+      "linearIssue": "COD-12",
       "description": "Create Dockerfile for backend",
-      "file": "Dockerfile",
-      "steps": ["Use Node 20 alpine base", "Copy package files", "Install dependencies", "Copy source code", "Set CMD to start server"],
-      "passes": false
+      "acceptance": "Backend builds and runs in container",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
     },
     {
       "id": "COD-12-002",
-      "linear_issue": "COD-12",
-      "category": "devops",
-      "priority": "high",
-      "description": "Create docker-compose.yml",
-      "file": "docker-compose.yml",
-      "steps": ["Define app service", "Add PostgreSQL service", "Add Redis service", "Configure volumes", "Set up networking"],
-      "passes": false
+      "category": "DevOps",
+      "linearIssue": "COD-12",
+      "description": "Create Dockerfile for frontend",
+      "acceptance": "Frontend builds and serves in container",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
     },
     {
       "id": "COD-12-003",
-      "linear_issue": "COD-12",
-      "category": "devops",
-      "priority": "high",
-      "description": "Create GitHub Actions test workflow",
-      "file": ".github/workflows/test.yml",
-      "steps": ["Trigger on PR and push", "Set up Node.js", "Install dependencies", "Run linting", "Run tests"],
-      "passes": false
+      "category": "DevOps",
+      "linearIssue": "COD-12",
+      "description": "Create docker-compose.yml",
+      "acceptance": "Full stack runs with docker-compose up",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
     },
     {
       "id": "COD-12-004",
-      "linear_issue": "COD-12",
-      "category": "devops",
-      "priority": "high",
-      "description": "Create GitHub Actions build workflow",
-      "file": ".github/workflows/build.yml",
-      "steps": ["Build Docker image", "Push to registry", "Tag with commit SHA", "Cache layers"],
-      "passes": false
+      "category": "DevOps",
+      "linearIssue": "COD-12",
+      "description": "Add PostgreSQL to docker-compose",
+      "acceptance": "Database container with volume",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
     },
     {
       "id": "COD-12-005",
-      "linear_issue": "COD-12",
-      "category": "devops",
-      "priority": "high",
-      "description": "Create GitHub Actions deploy workflow",
-      "file": ".github/workflows/deploy.yml",
-      "steps": ["Deploy to staging on merge", "Run smoke tests", "Manual approval for prod", "Deploy to production"],
-      "passes": false
+      "category": "DevOps",
+      "linearIssue": "COD-12",
+      "description": "Add Redis to docker-compose",
+      "acceptance": "Redis for rate limiting/caching",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
     },
     {
+      "id": "COD-12-006",
+      "category": "DevOps",
+      "linearIssue": "COD-12",
+      "description": "Create .dockerignore files",
+      "acceptance": "node_modules, .git, etc excluded",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-12-007",
+      "category": "DevOps",
+      "linearIssue": "COD-12",
+      "description": "Multi-stage Docker builds",
+      "acceptance": "Production images are minimal",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-12-008",
+      "category": "DevOps",
+      "linearIssue": "COD-12",
+      "description": "Create GitHub Actions CI workflow",
+      "acceptance": ".github/workflows/ci.yml runs tests",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-12-009",
+      "category": "DevOps",
+      "linearIssue": "COD-12",
+      "description": "Run linting in CI",
+      "acceptance": "ESLint runs on PR",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-12-010",
+      "category": "DevOps",
+      "linearIssue": "COD-12",
+      "description": "Run type checking in CI",
+      "acceptance": "tsc --noEmit runs on PR",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-12-011",
+      "category": "DevOps",
+      "linearIssue": "COD-12",
+      "description": "Run unit tests in CI",
+      "acceptance": "Jest/Vitest runs on PR",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-12-012",
+      "category": "DevOps",
+      "linearIssue": "COD-12",
+      "description": "Run integration tests in CI",
+      "acceptance": "DB tests run with test database",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-12-013",
+      "category": "DevOps",
+      "linearIssue": "COD-12",
+      "description": "Build Docker images in CI",
+      "acceptance": "Images built on merge to main",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-12-014",
+      "category": "DevOps",
+      "linearIssue": "COD-12",
+      "description": "Push images to container registry",
+      "acceptance": "Images pushed to Azure ACR",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-12-015",
+      "category": "DevOps",
+      "linearIssue": "COD-12",
+      "description": "Create GitHub Actions CD workflow",
+      "acceptance": ".github/workflows/cd.yml deploys",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-12-016",
+      "category": "DevOps",
+      "linearIssue": "COD-12",
+      "description": "Deploy to Azure App Service",
+      "acceptance": "Auto-deploy on merge to main",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-12-017",
+      "category": "DevOps",
+      "linearIssue": "COD-12",
+      "description": "Configure environment variables in Azure",
+      "acceptance": "All secrets in Azure Key Vault",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-12-018",
+      "category": "DevOps",
+      "linearIssue": "COD-12",
+      "description": "Set up Azure PostgreSQL",
+      "acceptance": "Production database provisioned",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-12-019",
+      "category": "DevOps",
+      "linearIssue": "COD-12",
+      "description": "Configure custom domain",
+      "acceptance": "merlin.example.com points to Azure",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-12-020",
+      "category": "DevOps",
+      "linearIssue": "COD-12",
+      "description": "Set up SSL certificate",
+      "acceptance": "HTTPS working with valid cert",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-12-021",
+      "category": "DevOps",
+      "linearIssue": "COD-12",
+      "description": "Configure health checks in Azure",
+      "acceptance": "Auto-restart on health failure",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-12-022",
+      "category": "DevOps",
+      "linearIssue": "COD-12",
+      "description": "Set up monitoring and alerts",
+      "acceptance": "Azure Monitor alerts on errors",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+
+    {
       "id": "COD-14-001",
-      "linear_issue": "COD-14",
-      "category": "legal",
-      "priority": "high",
-      "description": "Enforce robots.txt by default",
-      "file": "src/server/services/robotsTxtParser.ts",
-      "steps": ["Fetch robots.txt before clone", "Parse disallowed paths", "Block crawling disallowed URLs", "Add override option for site owners"],
-      "passes": true
+      "category": "Legal",
+      "linearIssue": "COD-14",
+      "description": "Create Terms of Service page",
+      "acceptance": "/terms page with legal content",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
     },
     {
       "id": "COD-14-002",
-      "linear_issue": "COD-14",
-      "category": "legal",
-      "priority": "high",
-      "description": "Add rate limiting per domain",
-      "file": "src/server/services/websiteCloner.ts",
-      "steps": ["Track requests per domain", "Implement delay between requests", "Respect Crawl-delay directive", "Default to 1 second delay"],
-      "passes": true
+      "category": "Legal",
+      "linearIssue": "COD-14",
+      "description": "Create Privacy Policy page",
+      "acceptance": "/privacy page with GDPR compliance",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
     },
     {
       "id": "COD-14-003",
-      "linear_issue": "COD-14",
-      "category": "legal",
-      "priority": "high",
-      "description": "Add user consent recording",
-      "file": "src/server/services/consentService.ts",
-      "steps": ["Create consent model", "Record user acceptance of ToS", "Store timestamp and IP", "Require consent before clone"],
-      "passes": false
+      "category": "Legal",
+      "linearIssue": "COD-14",
+      "description": "Add TOS checkbox on registration",
+      "acceptance": "Users must accept TOS to register",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
     },
     {
       "id": "COD-14-004",
-      "linear_issue": "COD-14",
-      "category": "legal",
-      "priority": "high",
-      "description": "Strengthen Terms of Service",
-      "file": "frontend/src/pages/Terms.tsx",
-      "steps": ["Add backup-only usage clause", "Add copyright disclaimer", "Add DMCA process", "Require checkbox acceptance"],
-      "passes": true
+      "category": "Legal",
+      "linearIssue": "COD-14",
+      "description": "Record TOS acceptance timestamp",
+      "acceptance": "tosAcceptedAt saved in database",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
     },
     {
       "id": "COD-14-005",
-      "linear_issue": "COD-14",
-      "category": "legal",
-      "priority": "high",
-      "description": "Implement DMCA takedown process",
-      "file": "src/server/routes/dmca.ts",
-      "steps": ["Create DMCA report endpoint", "Add admin notification", "Create takedown workflow", "Document process"],
-      "passes": false
+      "category": "Legal",
+      "linearIssue": "COD-14",
+      "description": "Create Acceptable Use Policy",
+      "acceptance": "/aup page listing prohibited uses",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
     },
     {
+      "id": "COD-14-006",
+      "category": "Legal",
+      "linearIssue": "COD-14",
+      "description": "Add disclaimer about website ownership",
+      "acceptance": "Clear statement about backup purpose only",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-14-007",
+      "category": "Legal",
+      "linearIssue": "COD-14",
+      "description": "Implement ownership verification",
+      "acceptance": "DNS TXT or meta tag verification",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-14-008",
+      "category": "Legal",
+      "linearIssue": "COD-14",
+      "description": "Block cloning of known protected sites",
+      "acceptance": "Blocklist for major platforms",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-14-009",
+      "category": "Legal",
+      "linearIssue": "COD-14",
+      "description": "Add cookie consent banner",
+      "acceptance": "GDPR-compliant cookie notice",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "COD-14-010",
+      "category": "Legal",
+      "linearIssue": "COD-14",
+      "description": "Implement data export (GDPR)",
+      "acceptance": "User can download all their data",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "COD-14-011",
+      "category": "Legal",
+      "linearIssue": "COD-14",
+      "description": "Implement account deletion (GDPR)",
+      "acceptance": "User can delete account and data",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "COD-14-012",
+      "category": "Legal",
+      "linearIssue": "COD-14",
+      "description": "Add data retention policy",
+      "acceptance": "Clones deleted after 90 days",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-14-013",
+      "category": "Legal",
+      "linearIssue": "COD-14",
+      "description": "Create DMCA takedown process",
+      "acceptance": "/dmca page with takedown form",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "COD-14-014",
+      "category": "Legal",
+      "linearIssue": "COD-14",
+      "description": "Log all clone requests for audit",
+      "acceptance": "Audit log with URL, user, timestamp",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-14-015",
+      "category": "Legal",
+      "linearIssue": "COD-14",
+      "description": "Add robots.txt respect toggle",
+      "acceptance": "Option to honor robots.txt",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-14-016",
+      "category": "Legal",
+      "linearIssue": "COD-14",
+      "description": "Create Contact Us page",
+      "acceptance": "/contact page with form",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "COD-14-017",
+      "category": "Legal",
+      "linearIssue": "COD-14",
+      "description": "Add footer with legal links",
+      "acceptance": "Footer on all pages with TOS, Privacy, etc.",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "COD-14-018",
+      "category": "Legal",
+      "linearIssue": "COD-14",
+      "description": "Implement age verification if needed",
+      "acceptance": "13+ age requirement noted",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+
+    {
       "id": "COD-13-001",
-      "linear_issue": "COD-13",
-      "category": "testing",
-      "priority": "medium",
-      "description": "Set up Vitest properly",
-      "file": "vitest.config.ts",
-      "steps": ["Configure vitest", "Set up test environment", "Add coverage reporting", "Configure thresholds"],
-      "passes": false
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Set up Jest/Vitest configuration",
+      "acceptance": "Test runner configured and working",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
     },
     {
       "id": "COD-13-002",
-      "linear_issue": "COD-13",
-      "category": "testing",
-      "priority": "medium",
-      "description": "Add unit tests for auth service",
-      "file": "tests/unit/auth.test.ts",
-      "steps": ["Test password hashing", "Test JWT generation", "Test JWT verification", "Test login flow", "Achieve 80% coverage"],
-      "passes": false
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Set up Playwright for E2E tests",
+      "acceptance": "Playwright configured with browsers",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
     },
     {
       "id": "COD-13-003",
-      "linear_issue": "COD-13",
-      "category": "testing",
-      "priority": "medium",
-      "description": "Add unit tests for websiteCloner",
-      "file": "tests/unit/websiteCloner.test.ts",
-      "steps": ["Test URL validation", "Test page limit enforcement", "Test asset extraction", "Mock Puppeteer calls"],
-      "passes": false
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Create test database setup script",
+      "acceptance": "Test DB created and migrated",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
     },
     {
       "id": "COD-13-004",
-      "linear_issue": "COD-13",
-      "category": "testing",
-      "priority": "medium",
-      "description": "Add integration tests for API",
-      "file": "tests/integration/api.test.ts",
-      "steps": ["Test auth endpoints", "Test clone endpoints", "Test payment endpoints", "Use supertest"],
-      "passes": false
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Write auth service unit tests",
+      "acceptance": "90% coverage on auth.ts",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["unit"]
     },
     {
       "id": "COD-13-005",
-      "linear_issue": "COD-13",
-      "category": "testing",
-      "priority": "medium",
-      "description": "Add E2E tests with Playwright",
-      "file": "tests/e2e/clone.spec.ts",
-      "steps": ["Install Playwright", "Test full clone workflow", "Test user registration", "Test payment flow"],
-      "passes": false
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Write clone service unit tests",
+      "acceptance": "90% coverage on clone service",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["unit"]
     },
     {
       "id": "COD-13-006",
-      "linear_issue": "COD-13",
-      "category": "testing",
-      "priority": "medium",
-      "description": "Set up pre-commit hooks",
-      "file": ".husky/pre-commit",
-      "steps": ["Install husky", "Add lint-staged", "Run tests before commit", "Block commits on failure"],
-      "passes": false
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Write payment service unit tests",
+      "acceptance": "90% coverage on payment service",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["unit"]
+    },
+    {
+      "id": "COD-13-007",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Write API endpoint integration tests",
+      "acceptance": "All endpoints have tests",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-13-008",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Write database integration tests",
+      "acceptance": "CRUD operations tested",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-13-009",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Write user registration E2E test",
+      "acceptance": "Full flow tested in browser",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "COD-13-010",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Write user login E2E test",
+      "acceptance": "Login flow tested in browser",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "COD-13-011",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Write clone creation E2E test",
+      "acceptance": "Clone flow tested in browser",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "COD-13-012",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Write payment flow E2E test",
+      "acceptance": "Checkout tested with Stripe test mode",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "COD-13-013",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Add code coverage reporting",
+      "acceptance": "Coverage report generated on test run",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-13-014",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Add coverage threshold enforcement",
+      "acceptance": "CI fails if coverage < 80%",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-13-015",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Write middleware unit tests",
+      "acceptance": "Auth middleware, rate limiter tested",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["unit"]
+    },
+    {
+      "id": "COD-13-016",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Write utility function tests",
+      "acceptance": "All utils have tests",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["unit"]
+    },
+    {
+      "id": "COD-13-017",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Write validation tests",
+      "acceptance": "Input validators tested",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["unit"]
+    },
+    {
+      "id": "COD-13-018",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Write error handling tests",
+      "acceptance": "Error responses tested",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-13-019",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Write React component tests",
+      "acceptance": "Key components have tests",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["unit"]
+    },
+    {
+      "id": "COD-13-020",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Write form validation tests",
+      "acceptance": "Frontend forms tested",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["unit"]
+    },
+    {
+      "id": "COD-13-021",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Add visual regression tests",
+      "acceptance": "Screenshots compared on PR",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "COD-13-022",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Add accessibility tests",
+      "acceptance": "axe-core runs in E2E tests",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "COD-13-023",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Write mobile responsive tests",
+      "acceptance": "E2E tests at mobile viewport",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "COD-13-024",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Add load testing with k6",
+      "acceptance": "Performance under 100 users tested",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-13-025",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Write webhook handler tests",
+      "acceptance": "Stripe webhooks tested with mocks",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-13-026",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Add test data factories",
+      "acceptance": "Factory functions for test data",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-13-027",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Write rate limiter tests",
+      "acceptance": "Rate limiting behavior verified",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-13-028",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Write password reset flow test",
+      "acceptance": "Full reset flow tested E2E",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "COD-13-029",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Add test timeouts and retries",
+      "acceptance": "Flaky tests handled properly",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-13-030",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Write logout flow test",
+      "acceptance": "Token invalidation tested",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-13-031",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Write concurrent request tests",
+      "acceptance": "Race conditions tested",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-13-032",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Add test documentation",
+      "acceptance": "Testing guide in README",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-13-033",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Write subscription lifecycle tests",
+      "acceptance": "Create, upgrade, cancel tested",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "COD-13-034",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Add CI test parallelization",
+      "acceptance": "Tests run in parallel in CI",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "COD-13-035",
+      "category": "Testing",
+      "linearIssue": "COD-13",
+      "description": "Achieve 80% overall coverage",
+      "acceptance": "Total coverage >= 80%",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+
+    {
+      "id": "UI-001",
+      "category": "UI/UX",
+      "linearIssue": null,
+      "description": "Improve landing page hero section",
+      "acceptance": "Hero has clear value prop and CTA",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e", "manual"]
+    },
+    {
+      "id": "UI-002",
+      "category": "UI/UX",
+      "linearIssue": null,
+      "description": "Add features comparison section",
+      "acceptance": "Feature grid on landing page",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "UI-003",
+      "category": "UI/UX",
+      "linearIssue": null,
+      "description": "Add customer testimonials",
+      "acceptance": "Testimonial carousel on landing",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "UI-004",
+      "category": "UI/UX",
+      "linearIssue": null,
+      "description": "Improve dashboard layout",
+      "acceptance": "Clear navigation and statistics",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "UI-005",
+      "category": "UI/UX",
+      "linearIssue": null,
+      "description": "Add clone progress visualization",
+      "acceptance": "Progress bar during clone",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "UI-006",
+      "category": "UI/UX",
+      "linearIssue": null,
+      "description": "Add clone history list",
+      "acceptance": "Table of past clones with status",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "UI-007",
+      "category": "UI/UX",
+      "linearIssue": null,
+      "description": "Add clone preview thumbnails",
+      "acceptance": "Screenshot preview of cloned sites",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "UI-008",
+      "category": "UI/UX",
+      "linearIssue": null,
+      "description": "Improve mobile navigation",
+      "acceptance": "Hamburger menu works smoothly",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "UI-009",
+      "category": "UI/UX",
+      "linearIssue": null,
+      "description": "Add dark mode toggle",
+      "acceptance": "User can switch themes",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "UI-010",
+      "category": "UI/UX",
+      "linearIssue": null,
+      "description": "Improve form error messages",
+      "acceptance": "Inline validation with clear messages",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "UI-011",
+      "category": "UI/UX",
+      "linearIssue": null,
+      "description": "Add loading skeletons",
+      "acceptance": "Skeleton loaders during data fetch",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "UI-012",
+      "category": "UI/UX",
+      "linearIssue": null,
+      "description": "Add toast notifications",
+      "acceptance": "Success/error toasts for actions",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "UI-013",
+      "category": "UI/UX",
+      "linearIssue": null,
+      "description": "Improve 404 page",
+      "acceptance": "Friendly 404 with navigation",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "UI-014",
+      "category": "UI/UX",
+      "linearIssue": null,
+      "description": "Add error boundary",
+      "acceptance": "Graceful error handling UI",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "UI-015",
+      "category": "UI/UX",
+      "linearIssue": null,
+      "description": "Improve form accessibility",
+      "acceptance": "ARIA labels on all inputs",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "UI-016",
+      "category": "UI/UX",
+      "linearIssue": null,
+      "description": "Add keyboard navigation",
+      "acceptance": "Tab through all interactive elements",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "UI-017",
+      "category": "UI/UX",
+      "linearIssue": null,
+      "description": "Add file download UI",
+      "acceptance": "Clear download button for clones",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "UI-018",
+      "category": "UI/UX",
+      "linearIssue": null,
+      "description": "Add user profile page",
+      "acceptance": "Profile editing UI",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "UI-019",
+      "category": "UI/UX",
+      "linearIssue": null,
+      "description": "Add account settings page",
+      "acceptance": "Password change, email update",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "UI-020",
+      "category": "UI/UX",
+      "linearIssue": null,
+      "description": "Improve pricing page design",
+      "acceptance": "Clear plan comparison",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "UI-021",
+      "category": "UI/UX",
+      "linearIssue": null,
+      "description": "Add FAQ section",
+      "acceptance": "Accordion FAQ on landing",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "UI-022",
+      "category": "UI/UX",
+      "linearIssue": null,
+      "description": "Add How It Works section",
+      "acceptance": "Step-by-step guide on landing",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "UI-023",
+      "category": "UI/UX",
+      "linearIssue": null,
+      "description": "Improve button styles",
+      "acceptance": "Consistent button design system",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "UI-024",
+      "category": "UI/UX",
+      "linearIssue": null,
+      "description": "Add confirmation modals",
+      "acceptance": "Confirm destructive actions",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "UI-025",
+      "category": "UI/UX",
+      "linearIssue": null,
+      "description": "Add empty state designs",
+      "acceptance": "Friendly empty states with CTAs",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+
+    {
+      "id": "PERF-001",
+      "category": "Performance",
+      "linearIssue": null,
+      "description": "Add response caching",
+      "acceptance": "Redis caches API responses",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "PERF-002",
+      "category": "Performance",
+      "linearIssue": null,
+      "description": "Implement CDN for static assets",
+      "acceptance": "Assets served from CDN",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "PERF-003",
+      "category": "Performance",
+      "linearIssue": null,
+      "description": "Add image optimization",
+      "acceptance": "Images compressed and sized",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "PERF-004",
+      "category": "Performance",
+      "linearIssue": null,
+      "description": "Implement lazy loading",
+      "acceptance": "Images load on scroll",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["e2e"]
+    },
+    {
+      "id": "PERF-005",
+      "category": "Performance",
+      "linearIssue": null,
+      "description": "Add code splitting",
+      "acceptance": "Route-based code splitting",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "PERF-006",
+      "category": "Performance",
+      "linearIssue": null,
+      "description": "Optimize database queries",
+      "acceptance": "N+1 queries eliminated",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "PERF-007",
+      "category": "Performance",
+      "linearIssue": null,
+      "description": "Add query result pagination",
+      "acceptance": "Large lists paginated",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "PERF-008",
+      "category": "Performance",
+      "linearIssue": null,
+      "description": "Implement gzip compression",
+      "acceptance": "Responses gzip compressed",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "PERF-009",
+      "category": "Performance",
+      "linearIssue": null,
+      "description": "Add browser caching headers",
+      "acceptance": "Cache-Control headers set",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "PERF-010",
+      "category": "Performance",
+      "linearIssue": null,
+      "description": "Optimize bundle size",
+      "acceptance": "Main bundle < 200KB gzipped",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "PERF-011",
+      "category": "Performance",
+      "linearIssue": null,
+      "description": "Add service worker for offline",
+      "acceptance": "Basic PWA support",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "PERF-012",
+      "category": "Performance",
+      "linearIssue": null,
+      "description": "Optimize clone job queue",
+      "acceptance": "Queue handles 100+ concurrent jobs",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "PERF-013",
+      "category": "Performance",
+      "linearIssue": null,
+      "description": "Add request deduplication",
+      "acceptance": "Duplicate requests merged",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "PERF-014",
+      "category": "Performance",
+      "linearIssue": null,
+      "description": "Implement connection pooling",
+      "acceptance": "Database connections pooled",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+    {
+      "id": "PERF-015",
+      "category": "Performance",
+      "linearIssue": null,
+      "description": "Add performance monitoring",
+      "acceptance": "APM metrics collected",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["manual"]
+    },
+
+    {
+      "id": "CLONE-001",
+      "category": "Clone Engine",
+      "linearIssue": null,
+      "description": "Improve asset discovery",
+      "acceptance": "Find 95%+ of page assets",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "CLONE-002",
+      "category": "Clone Engine",
+      "linearIssue": null,
+      "description": "Add JavaScript rendering",
+      "acceptance": "Clone SPAs with Puppeteer",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "CLONE-003",
+      "category": "Clone Engine",
+      "linearIssue": null,
+      "description": "Handle infinite scroll pages",
+      "acceptance": "Scroll and capture all content",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "CLONE-004",
+      "category": "Clone Engine",
+      "linearIssue": null,
+      "description": "Add multi-page crawling",
+      "acceptance": "Clone entire site up to N pages",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "CLONE-005",
+      "category": "Clone Engine",
+      "linearIssue": null,
+      "description": "Handle authentication walls",
+      "acceptance": "User provides cookies for auth",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "CLONE-006",
+      "category": "Clone Engine",
+      "linearIssue": null,
+      "description": "Add CSS inlining option",
+      "acceptance": "Inline all CSS in HTML",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "CLONE-007",
+      "category": "Clone Engine",
+      "linearIssue": null,
+      "description": "Preserve form functionality",
+      "acceptance": "Forms work in cloned site",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "CLONE-008",
+      "category": "Clone Engine",
+      "linearIssue": null,
+      "description": "Handle video embeds",
+      "acceptance": "YouTube/Vimeo embeds preserved",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "CLONE-009",
+      "category": "Clone Engine",
+      "linearIssue": null,
+      "description": "Add font downloading",
+      "acceptance": "Web fonts included in clone",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "CLONE-010",
+      "category": "Clone Engine",
+      "linearIssue": null,
+      "description": "Generate sitemap for clone",
+      "acceptance": "sitemap.xml created",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "CLONE-011",
+      "category": "Clone Engine",
+      "linearIssue": null,
+      "description": "Add clone comparison diff",
+      "acceptance": "Show changes between clones",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
+    },
+    {
+      "id": "CLONE-012",
+      "category": "Clone Engine",
+      "linearIssue": null,
+      "description": "Add scheduled clone option",
+      "acceptance": "Auto-clone on schedule",
+      "passes": false,
+      "testedAt": null,
+      "testType": ["integration"]
     }
   ]
 }
