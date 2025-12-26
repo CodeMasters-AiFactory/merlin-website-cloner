@@ -322,28 +322,88 @@ export class AssetCapture {
   }
 
   /**
-   * Captures videos
+   * Captures videos including background videos and hero videos
    */
   private async captureVideos(
     page: Page,
     options: AssetCaptureOptions
   ): Promise<Asset[]> {
     const videos = await page.evaluate(() => {
-      const videoElements = Array.from(document.querySelectorAll('video'));
-      const sources = Array.from(document.querySelectorAll('video source, source[type*="video"]'));
-      
       const urls: string[] = [];
-      
+
+      // 1. Standard video elements
+      const videoElements = Array.from(document.querySelectorAll('video'));
       videoElements.forEach(video => {
         if (video.src) urls.push(video.src);
         if (video.poster) urls.push(video.poster);
+
+        // Check for data attributes with video URLs
+        const dataSrc = video.getAttribute('data-src');
+        if (dataSrc) urls.push(dataSrc);
       });
-      
-      const sourceElements = Array.from(sources) as HTMLSourceElement[];
-      sourceElements.forEach((source: HTMLSourceElement) => {
+
+      // 2. Source elements inside video tags
+      const sources = Array.from(document.querySelectorAll('video source, source[type*="video"]')) as HTMLSourceElement[];
+      sources.forEach(source => {
         if (source.src) urls.push(source.src);
       });
-      
+
+      // 3. Background videos (videos with position:fixed/absolute, object-fit:cover)
+      videoElements.forEach(video => {
+        const computed = window.getComputedStyle(video);
+        const position = computed.position;
+        const objectFit = computed.objectFit;
+
+        // Background video indicators
+        if ((position === 'fixed' || position === 'absolute') || objectFit === 'cover') {
+          // This is likely a background video - ensure we capture it
+          if (video.src && !urls.includes(video.src)) {
+            urls.push(video.src);
+          }
+          // Also check for lazy-loaded source
+          const lazySrc = video.getAttribute('data-lazy-src') || video.getAttribute('data-video-src');
+          if (lazySrc && !urls.includes(lazySrc)) {
+            urls.push(lazySrc);
+          }
+        }
+      });
+
+      // 4. Videos in pseudo-elements or CSS backgrounds (rare but happens)
+      const allElements = document.querySelectorAll('*');
+      allElements.forEach(el => {
+        const computed = window.getComputedStyle(el);
+        const bgImage = computed.backgroundImage;
+
+        // Check for video URLs in background
+        if (bgImage && bgImage.includes('.mp4') || bgImage.includes('.webm')) {
+          const urlMatch = bgImage.match(/url\(['"]?([^'"()]+)['"]?\)/);
+          if (urlMatch && urlMatch[1]) {
+            urls.push(urlMatch[1]);
+          }
+        }
+      });
+
+      // 5. Videos loaded via JavaScript (check for video URLs in inline scripts)
+      const scripts = Array.from(document.querySelectorAll('script:not([src])'));
+      scripts.forEach(script => {
+        const content = script.textContent || '';
+        // Match common video URL patterns
+        const videoPatterns = [
+          /['"]([^'"]+\.(?:mp4|webm|ogg|mov))['"]?/gi,
+          /videoSrc\s*[:=]\s*['"]([^'"]+)['"]/gi,
+          /source\s*[:=]\s*['"]([^'"]+\.(?:mp4|webm))['"]/gi,
+        ];
+
+        videoPatterns.forEach(pattern => {
+          let match;
+          while ((match = pattern.exec(content)) !== null) {
+            if (match[1] && !match[1].includes('{{') && !match[1].includes('${')) {
+              urls.push(match[1]);
+            }
+          }
+        });
+      });
+
       return [...new Set(urls)];
     });
 
@@ -716,9 +776,27 @@ export class AssetCapture {
     this.downloading.add(url);
 
     try {
+      // Skip blob URLs - they can't be fetched via HTTP
+      if (url.startsWith('blob:')) {
+        this.downloading.delete(url);
+        return null;
+      }
+
+      // Skip data URIs - they're already embedded
+      if (url.startsWith('data:')) {
+        this.downloading.delete(url);
+        return null;
+      }
+
       // Convert to absolute URL
       const absoluteUrl = new URL(url, options.baseUrl).href;
-      
+
+      // Double-check the absolute URL isn't a blob or data URI
+      if (absoluteUrl.startsWith('blob:') || absoluteUrl.startsWith('data:')) {
+        this.downloading.delete(url);
+        return null;
+      }
+
       // Check CDN cache first if CDN optimizer is available
       let buffer: Buffer | null = null;
       let headers: Record<string, string> = {};

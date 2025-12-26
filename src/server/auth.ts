@@ -32,6 +32,16 @@ export interface AuthRequest extends Request {
     email: string;
     name: string;
   };
+  body: any;
+  params: any;
+  query: any;
+  headers: any;
+  protocol: string;
+  ip?: string;
+  socket: any;
+  get: (name: string) => string | undefined;
+  on: (event: string, callback: (...args: any[]) => void) => void;
+  url: string;
 }
 
 /**
@@ -45,7 +55,7 @@ export function generateToken(user: { id: string; email: string; name: string })
   };
   
   const options: SignOptions = {
-    expiresIn: JWT_EXPIRES_IN as string,
+    expiresIn: JWT_EXPIRES_IN,
     algorithm: 'HS256'
   };
   

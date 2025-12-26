@@ -48,6 +48,10 @@ import { WARCGenerator } from './warcGenerator.js';
 import { RetryManager } from './retryManager.js';
 import { ErrorHandler } from './errorHandler.js';
 import { verifyClone, type VerificationResult } from './cloneVerifier.js';
+import { CSSAnimationExtractor } from './cssAnimationExtractor.js';
+import { ComputedStyleCapture } from './computedStyleCapture.js';
+import { LearningAgent, getLearningAgent, type CloneIssue } from './learningSystem.js';
+import { WebsitePreScanner, type PreScanResult } from './websitePreScanner.js';
 
 export interface CloneOptions {
   url: string;
@@ -56,6 +60,12 @@ export interface CloneOptions {
   maxDepth?: number;
   concurrency?: number;
   unlimited?: boolean;
+  timeout?: number;
+  timeLimitMinutes?: number; // Max total clone time in minutes (0 = unlimited)
+  waitForDynamic?: boolean;
+  javascript?: boolean;
+  respectRobots?: boolean;
+  maxConcurrency?: number;
   proxyConfig?: {
     providers?: any[];
     enabled?: boolean;
@@ -88,11 +98,13 @@ export interface CloneProgress {
   currentPage: number;
   totalPages: number;
   currentUrl: string;
-  status: 'crawling' | 'processing' | 'fixing' | 'optimizing' | 'verifying' | 'exporting' | 'complete';
+  status: 'crawling' | 'processing' | 'fixing' | 'optimizing' | 'verifying' | 'exporting' | 'complete' | 'time_limit_reached';
   message: string;
   assetsCaptured?: number;
   recentFiles?: Array<{ path: string; size: number; timestamp: string; type: string }>;
   estimatedTimeRemaining?: number;
+  elapsedMinutes?: number;
+  timeLimitMinutes?: number;
 }
 
 export interface CloneResult {
@@ -136,6 +148,13 @@ export class WebsiteCloner {
   private logger: LoggingService;
   private retryManager: RetryManager;
   private errorHandler: ErrorHandler;
+  private cssAnimationExtractor: CSSAnimationExtractor;
+  private computedStyleCapture: ComputedStyleCapture;
+  private learningAgent: LearningAgent | null = null;
+
+  // Track active browsers for cleanup on exit
+  private activeBrowsers: Set<Browser> = new Set();
+  private cleanupRegistered = false;
 
   // Asset URL mapping: maps original URL -> relative local path
   private assetUrlMap: Map<string, string> = new Map();
@@ -184,6 +203,80 @@ export class WebsiteCloner {
       multiplier: 2,
       jitter: true,
     });
+    this.cssAnimationExtractor = new CSSAnimationExtractor();
+    this.computedStyleCapture = new ComputedStyleCapture();
+
+    // Register cleanup handlers to close browsers on process exit
+    this.registerCleanupHandlers();
+  }
+
+  /**
+   * Register process exit handlers to ensure browsers are closed
+   * This prevents zombie Chrome processes when the task is killed
+   */
+  private registerCleanupHandlers(): void {
+    if (this.cleanupRegistered) return;
+    this.cleanupRegistered = true;
+
+    const cleanup = async () => {
+      console.log('[Cleanup] Closing all browsers...');
+      const closePromises: Promise<void>[] = [];
+
+      for (const browser of this.activeBrowsers) {
+        if (browser.isConnected()) {
+          closePromises.push(
+            browser.close().catch((e) => {
+              console.error('[Cleanup] Error closing browser:', e.message);
+            })
+          );
+        }
+      }
+
+      // Also close the browser pool
+      closePromises.push(
+        this.browserPool.closeAll().catch((e) => {
+          console.error('[Cleanup] Error closing browser pool:', e.message);
+        })
+      );
+
+      await Promise.all(closePromises);
+      this.activeBrowsers.clear();
+      console.log('[Cleanup] All browsers closed.');
+    };
+
+    // Handle various termination signals
+    process.on('exit', () => {
+      // Synchronous cleanup - limited, but catches normal exits
+      for (const browser of this.activeBrowsers) {
+        try {
+          if (browser.isConnected()) {
+            browser.close().catch(() => {});
+          }
+        } catch {}
+      }
+    });
+
+    process.on('SIGINT', async () => {
+      await cleanup();
+      process.exit(0);
+    });
+
+    process.on('SIGTERM', async () => {
+      await cleanup();
+      process.exit(0);
+    });
+
+    process.on('uncaughtException', async (err) => {
+      console.error('[Cleanup] Uncaught exception:', err);
+      await cleanup();
+      process.exit(1);
+    });
+
+    process.on('unhandledRejection', async (reason) => {
+      console.error('[Cleanup] Unhandled rejection:', reason);
+      await cleanup();
+      process.exit(1);
+    });
   }
 
   /**
@@ -203,6 +296,85 @@ export class WebsiteCloner {
 
     const startTime = Date.now();
     const recentFiles: Array<{ path: string; size: number; timestamp: string; type: string }> = [];
+
+    // Initialize learning agent for this clone session
+    try {
+      this.learningAgent = await getLearningAgent('./merlin-learning.json');
+
+      // Pre-clone analysis - get predictions and recommended settings
+      const analysis = await this.learningAgent.preCloneAnalysis(options.url);
+
+      if (analysis.predictedIssues.length > 0) {
+        await this.logger.info('[Learning] Pre-clone predictions:', {
+          url: options.url,
+          predictions: analysis.predictedIssues,
+          confidence: analysis.confidence
+        });
+      }
+
+      // Apply recommended settings (merge with user settings)
+      // LEARNING SYSTEM: These settings come from past clone experiences
+      if (analysis.recommendedSettings.timeout && !options.timeout) {
+        (options as any).timeout = analysis.recommendedSettings.timeout;
+      }
+      if (analysis.recommendedSettings.waitForDynamic) {
+        (options as any).waitForDynamic = true;
+      }
+
+      // Apply learned maxPages - this is critical for broken link prevention
+      if (analysis.recommendedSettings.maxPages) {
+        const learnedMaxPages = analysis.recommendedSettings.maxPages as number;
+        const currentMaxPages = options.maxPages || 10;
+        if (learnedMaxPages > currentMaxPages) {
+          await this.logger.info(`[Learning] Increasing maxPages from ${currentMaxPages} to ${learnedMaxPages} based on past experience`);
+          options.maxPages = learnedMaxPages;
+        }
+      }
+
+      // Apply font capture settings
+      if (analysis.recommendedSettings.captureFonts) {
+        (options as any).captureFonts = true;
+        (options as any).fontExtensions = analysis.recommendedSettings.fontExtensions;
+        await this.logger.info('[Learning] Enabling font capture based on past experience');
+      }
+
+      // Apply CDN timeout settings
+      if (analysis.recommendedSettings.cdnTimeout) {
+        (options as any).cdnTimeout = analysis.recommendedSettings.cdnTimeout;
+        (options as any).cdnRetries = analysis.recommendedSettings.cdnRetries;
+        await this.logger.info('[Learning] Applying CDN timeout settings based on past experience');
+      }
+
+      // Apply protocol timeout settings (for heavy JS sites)
+      if (analysis.recommendedSettings.protocolTimeout) {
+        (options as any).protocolTimeout = analysis.recommendedSettings.protocolTimeout;
+        await this.logger.info(`[Learning] Setting protocolTimeout to ${analysis.recommendedSettings.protocolTimeout}ms based on past experience`);
+      }
+
+      // Apply concurrency settings (reduce for heavy/unstable sites)
+      if (analysis.recommendedSettings.concurrency) {
+        const learnedConcurrency = analysis.recommendedSettings.concurrency as number;
+        const currentConcurrency = options.concurrency || 5;
+        if (learnedConcurrency < currentConcurrency) {
+          options.concurrency = learnedConcurrency;
+          await this.logger.info(`[Learning] Reducing concurrency from ${currentConcurrency} to ${learnedConcurrency} based on past experience`);
+        }
+      }
+
+      // Apply delay between pages (for unstable sites)
+      if (analysis.recommendedSettings.delayBetweenPages) {
+        (options as any).delayBetweenPages = analysis.recommendedSettings.delayBetweenPages;
+        await this.logger.info(`[Learning] Adding ${analysis.recommendedSettings.delayBetweenPages}ms delay between pages based on past experience`);
+      }
+
+      // Start learning session
+      this.learningAgent.startSession(options.url);
+    } catch (err) {
+      // Learning system is optional, continue without it
+      await this.logger.warn('[Learning] Failed to initialize learning agent', {
+        error: err instanceof Error ? err.message : String(err)
+      });
+    }
 
     // Define trackFile function to add files to recentFiles array
     const trackFile = (file: { path: string; size: number; type: string }) => {
@@ -273,6 +445,10 @@ export class WebsiteCloner {
           protocol: proxyConfig.protocol || 'http',
         } : undefined,
       });
+
+      // Track browser for cleanup on exit
+      this.activeBrowsers.add(browser);
+
       await this.logger.info('Browser acquired from pool', { url: options.url });
 
       try {
@@ -289,7 +465,97 @@ export class WebsiteCloner {
         } finally {
           await testPage.close();
         }
-        
+
+        // =====================================================================
+        // PRE-SCAN: Analyze website before cloning to detect complexity
+        // This prevents failures by auto-adjusting concurrency, timeouts, etc.
+        // =====================================================================
+        let preScanResult: PreScanResult | null = null;
+        try {
+          await this.reportProgress(options, {
+            currentPage: 0,
+            totalPages: 0,
+            currentUrl: options.url,
+            status: 'processing',
+            message: 'Pre-scanning website to detect complexity...'
+          });
+
+          const preScanner = new WebsitePreScanner();
+          preScanResult = await preScanner.scan(browser, options.url);
+
+          // Log the summary
+          await this.logger.info('[PreScan] Website analysis complete', {
+            url: options.url,
+            complexity: preScanResult.complexity,
+            complexityScore: preScanResult.complexityScore,
+            framework: preScanResult.framework || 'none',
+            pageLoadTime: preScanResult.pageLoadTime,
+            jsExecutionTime: preScanResult.jsExecutionTime
+          });
+
+          // Apply pre-scan recommended settings (only if user didn't override)
+          // Priority: User settings > Learning system > Pre-scan
+          const rec = preScanResult.recommendedSettings;
+
+          // Concurrency - take the lower of pre-scan vs current (may have been set by learning)
+          const currentConcurrency = options.concurrency || 5;
+          if (rec.concurrency < currentConcurrency) {
+            await this.logger.info(`[PreScan] Reducing concurrency from ${currentConcurrency} to ${rec.concurrency} (complexity: ${preScanResult.complexity})`, { url: options.url });
+            options.concurrency = rec.concurrency;
+          }
+
+          // Timeout - only if not already set
+          if (!options.timeout) {
+            options.timeout = rec.timeout;
+            await this.logger.info(`[PreScan] Setting timeout to ${rec.timeout / 1000}s`, { url: options.url });
+          }
+
+          // Protocol timeout - only if not already set by learning
+          if (!(options as any).protocolTimeout) {
+            (options as any).protocolTimeout = rec.protocolTimeout;
+          }
+
+          // Delay between pages - take the higher of pre-scan vs learning
+          const currentDelay = (options as any).delayBetweenPages || 0;
+          if (rec.delayBetweenPages > currentDelay) {
+            (options as any).delayBetweenPages = rec.delayBetweenPages;
+            await this.logger.info(`[PreScan] Setting delay between pages to ${rec.delayBetweenPages}ms`, { url: options.url });
+          }
+
+          // Wait for dynamic content
+          if (rec.waitForDynamic && !(options as any).waitForDynamic) {
+            (options as any).waitForDynamic = true;
+          }
+
+          // Store tech stack in learning session metadata
+          if (this.learningAgent && preScanResult.techStack.length > 0) {
+            // This will be used by the learning system for future predictions
+            (this.learningAgent as any).currentSession = (this.learningAgent as any).currentSession || {};
+            if ((this.learningAgent as any).currentSession?.metadata) {
+              (this.learningAgent as any).currentSession.metadata.techStack = preScanResult.techStack;
+              (this.learningAgent as any).currentSession.metadata.hasJavaScript = preScanResult.isSPA;
+              (this.learningAgent as any).currentSession.metadata.hasDynamicContent = preScanResult.isSPA;
+            }
+          }
+
+          // Log final settings
+          await this.logger.info('[PreScan] Final clone settings after analysis', {
+            url: options.url,
+            concurrency: options.concurrency,
+            timeout: options.timeout,
+            protocolTimeout: (options as any).protocolTimeout,
+            delayBetweenPages: (options as any).delayBetweenPages,
+            complexity: preScanResult.complexity
+          });
+
+        } catch (preScanError) {
+          // Pre-scan is optional - log and continue with defaults
+          await this.logger.warn('[PreScan] Website analysis failed, using default settings', {
+            url: options.url,
+            error: preScanError instanceof Error ? preScanError.message : String(preScanError)
+          });
+        }
+
         // Clone pages with file tracking
         await this.logger.info('Starting to clone pages...', { url: options.url });
         let currentPagesCloned = 0; // Track pages as they're cloned
@@ -382,6 +648,7 @@ export class WebsiteCloner {
               }
               // Also update progress immediately
               if (options.onProgress) {
+                const elapsedMinutes = (Date.now() - startTime) / 60000;
                 options.onProgress({
                   currentPage: currentPagesCloned,
                   totalPages: options.maxPages || 100,
@@ -389,10 +656,25 @@ export class WebsiteCloner {
                   status: 'crawling',
                   message: `Downloaded: ${path.basename(file.path)}`,
                   assetsCaptured: recentFiles.filter(f => f.type !== 'html').length,
-                  recentFiles: recentFiles.slice(-10)
+                  recentFiles: recentFiles.slice(-10),
+                  elapsedMinutes: Math.round(elapsedMinutes * 10) / 10,
+                  timeLimitMinutes: options.timeLimitMinutes
                 });
               }
             }
+          }, startTime); // Pass startTime for time limit checking
+        }
+
+        // Check if time limit was reached
+        if (cloneResult.timeLimitReached) {
+          await this.reportProgress(options, {
+            currentPage: cloneResult.pagesCloned,
+            totalPages: cloneResult.pagesCloned,
+            currentUrl: '',
+            status: 'time_limit_reached',
+            message: `Time limit reached (${options.timeLimitMinutes} minutes). Clone stopped with ${cloneResult.pagesCloned} pages.`,
+            elapsedMinutes: options.timeLimitMinutes,
+            timeLimitMinutes: options.timeLimitMinutes
           });
         }
         await this.logger.info('Clone result', {
@@ -447,6 +729,15 @@ export class WebsiteCloner {
               originalSize: `${(optimizationResults.totalOriginalSize / 1024 / 1024).toFixed(2)} MB`,
               optimizedSize: `${(optimizationResults.totalOptimizedSize / 1024 / 1024).toFixed(2)} MB`
             });
+
+            // Update HTML references if images were converted to different formats
+            if (optimizationResults.pathChanges.size > 0) {
+              await this.updateHtmlForOptimizedImages(baseDir, optimizationResults.pathChanges);
+              await this.logger.info('Updated HTML references for optimized images', {
+                url: options.url,
+                imagesConverted: optimizationResults.pathChanges.size
+              });
+            }
           } catch (optimizationError) {
             await this.logger.warn('Image optimization failed', {
               url: options.url,
@@ -536,7 +827,8 @@ export class WebsiteCloner {
           });
         }
       } finally {
-        // Release browser back to pool instead of closing
+        // Remove from active tracking and release browser back to pool
+        this.activeBrowsers.delete(browser);
         this.browserPool.release(browser);
       }
     } catch (error) {
@@ -569,7 +861,151 @@ export class WebsiteCloner {
       message: result.success ? 'Clone completed successfully!' : 'Clone completed with errors'
     });
 
+    // End learning session and extract lessons
+    if (this.learningAgent) {
+      try {
+        // Update progress info
+        this.learningAgent.updateProgress(result.pagesCloned, result.assetsCaptured);
+
+        // Log issues from verification results
+        if (result.verificationResult?.checks) {
+          for (const check of result.verificationResult.checks) {
+            if (!check.passed) {
+              // Map verification check to learning issue type
+              let issueType: CloneIssue['type'] = 'other';
+              if (check.category === 'links') issueType = 'broken_link';
+              else if (check.category === 'images' || check.category === 'assets') issueType = 'missing_asset';
+              else if (check.category === 'dynamic') issueType = 'dynamic_content';
+
+              this.learningAgent.logIssue({
+                type: issueType,
+                description: check.message,
+                url: options.url,
+                context: {
+                  category: check.category,
+                  details: check.details
+                }
+              });
+            }
+          }
+        }
+
+        // Log general errors as issues
+        for (const error of result.errors) {
+          this.learningAgent.logIssue({
+            type: this.categorizeError(error),
+            description: error,
+            url: options.url
+          });
+        }
+
+        // End session with final score - triggers learning and rule generation
+        const finalScore = result.verificationResult?.score ?? (result.success ? 70 : 0);
+        const learningResult = await this.learningAgent.endSession(finalScore);
+
+        if (learningResult.newRules.length > 0) {
+          await this.logger.info('[Learning] Generated new rules:', {
+            url: options.url,
+            rulesCount: learningResult.newRules.length,
+            rules: learningResult.newRules.map(r => r.name)
+          });
+        }
+
+        if (learningResult.improvement !== 0) {
+          await this.logger.info('[Learning] Score improvement:', {
+            url: options.url,
+            improvement: `${learningResult.improvement > 0 ? '+' : ''}${learningResult.improvement.toFixed(1)}%`
+          });
+        }
+      } catch (err) {
+        await this.logger.warn('[Learning] Failed to end learning session', {
+          error: err instanceof Error ? err.message : String(err)
+        });
+      }
+    }
+
     return result;
+  }
+
+  /**
+   * Categorizes an error message into a learning issue type
+   * Looks for [RAW: ...] section which contains the original error message
+   */
+  private categorizeError(error: string): CloneIssue['type'] {
+    // Extract raw error if present (format: [RAW: actual error message])
+    const rawMatch = error.match(/\[RAW:\s*(.+?)\]$/s);
+    const rawError = rawMatch ? rawMatch[1] : '';
+
+    // Check both the formatted message and raw error
+    const lowerError = error.toLowerCase();
+    const lowerRaw = rawError.toLowerCase();
+
+    // Protocol timeout - specific browser/Puppeteer protocol errors
+    // Check raw error first (more reliable)
+    if (lowerRaw.includes('runtime.callfunctionon') ||
+        lowerRaw.includes('protocolerror') ||
+        lowerRaw.includes('protocol error') ||
+        lowerRaw.includes('cdpsession') ||
+        lowerError.includes('protocol') ||
+        lowerError.includes('runtime.callfunctionon')) {
+      return 'protocol_timeout';
+    }
+
+    // Target closed - browser session terminated
+    if (lowerRaw.includes('target closed') ||
+        lowerRaw.includes('session closed') ||
+        lowerRaw.includes('page has been closed') ||
+        lowerRaw.includes('connection closed') ||
+        lowerError.includes('target closed') ||
+        lowerError.includes('session closed') ||
+        lowerError.includes('page has been closed') ||
+        lowerError.includes('browser has disconnected') ||
+        lowerError.includes('detached from target')) {
+      return 'target_closed';
+    }
+
+    // Main frame too early - race condition, treat as target_closed
+    if (lowerRaw.includes('main frame too early') ||
+        lowerError.includes('main frame too early')) {
+      return 'target_closed';
+    }
+
+    // General timeout (network/navigation)
+    if (lowerError.includes('timeout') || lowerRaw.includes('timeout')) return 'timeout';
+    if (lowerError.includes('cloudflare') || lowerError.includes('captcha') || lowerError.includes('blocked')) return 'anti_bot';
+    if (lowerError.includes('link') || lowerError.includes('href') || lowerError.includes('404')) return 'broken_link';
+    if (lowerError.includes('asset') || lowerError.includes('image') || lowerError.includes('css') || lowerError.includes('js')) return 'missing_asset';
+    if (lowerError.includes('dynamic') || lowerError.includes('javascript') || lowerError.includes('spa')) return 'dynamic_content';
+    if (lowerError.includes('path') || lowerError.includes('directory')) return 'path_mismatch';
+    return 'other';
+  }
+
+  /**
+   * Gets learning system statistics and report
+   */
+  async getLearningReport(): Promise<{
+    stats: { totalClones: number; successfulClones: number; averageScore: number; issuesFixed: number; patternsLearned: number; rulesGenerated: number };
+    rules: Array<{ name: string; confidence: number; timesApplied: number }>;
+    report: string;
+  }> {
+    try {
+      const agent = await getLearningAgent('./merlin-learning.json');
+      return {
+        stats: agent.getStats(),
+        rules: agent.getRules().map(r => ({
+          name: r.name,
+          confidence: r.confidence,
+          timesApplied: r.timesApplied
+        })),
+        report: agent.getSummaryReport()
+      };
+    } catch (error) {
+      return {
+        stats: { totalClones: 0, successfulClones: 0, averageScore: 0, issuesFixed: 0, patternsLearned: 0, rulesGenerated: 0 },
+        rules: [],
+        report: 'Learning system not initialized'
+      };
+    }
   }
 
   /**
@@ -661,8 +1097,23 @@ export class WebsiteCloner {
       // Not cached, proceed with scraping
       const page = await browser.newPage();
 
+      // Apply delay between pages if learned (helps with heavy/unstable sites)
+      const delayBetweenPages = (options as any).delayBetweenPages || 0;
+      if (delayBetweenPages > 0) {
+        await new Promise(resolve => setTimeout(resolve, delayBetweenPages));
+      }
+
       // Give page a moment to fully initialize to avoid "Requesting main frame too early"
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // This is critical - the page must be fully ready before navigation
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Wait for the page target to be ready
+      try {
+        await page.waitForFunction(() => true, { timeout: 5000 });
+      } catch {
+        // If waitForFunction fails, continue anyway after extra delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
 
       // Load cookies
       try {
@@ -710,11 +1161,14 @@ export class WebsiteCloner {
         await applyBehavioralPatterns(page);
 
       // Navigate with fallback strategies
+          // Use learned timeout or default
+          const pageTimeout = (options as any).pageTimeout || options.timeout || 60000;
+
           // Retry navigation with exponential backoff
           const navigationResult = await this.retryManager.retry(
             async () => {
               // Try networkidle2 first (best for SPAs)
-              const response = await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
+              const response = await page.goto(url, { waitUntil: 'networkidle2', timeout: pageTimeout });
               if (response && response.status() >= 400) {
                 throw new Error(`HTTP ${response.status()} error for ${url}`);
               }
@@ -731,7 +1185,7 @@ export class WebsiteCloner {
             // Fallback to domcontentloaded
             const domResult = await this.retryManager.retry(
               async () => {
-                const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+                const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: pageTimeout });
                 if (response && response.status() >= 400) {
                   throw new Error(`HTTP ${response.status()} error for ${url}`);
                 }
@@ -747,7 +1201,7 @@ export class WebsiteCloner {
               // Final fallback to load
               const loadResult = await this.retryManager.retry(
                 async () => {
-                  const response = await page.goto(url, { waitUntil: 'load', timeout: 60000 });
+                  const response = await page.goto(url, { waitUntil: 'load', timeout: pageTimeout });
                   if (response && response.status() >= 400) {
                     throw new Error(`HTTP ${response.status()} error for ${url}`);
                   }
@@ -888,18 +1342,50 @@ export class WebsiteCloner {
       }
 
       // Build asset URL mapping for link fixing
-      // Maps external URLs to local relative paths
+      // Maps external URLs to local relative paths - stores MULTIPLE variants for better matching
       for (const asset of capturedAssets || []) {
         if (asset && typeof asset !== 'string' && asset.url && asset.localPath) {
           // Convert absolute localPath to relative path from outputDir
           const relativePath = path.relative(options.outputDir, asset.localPath).replace(/\\/g, '/');
+
+          // Store the original URL
           this.assetUrlMap.set(asset.url, relativePath);
-          // Also add normalized URL (without trailing slashes, etc.)
+
           try {
-            const normalized = new URL(asset.url).href;
-            if (normalized !== asset.url) {
-              this.assetUrlMap.set(normalized, relativePath);
+            const urlObj = new URL(asset.url);
+
+            // Store URL without query string
+            const urlWithoutQuery = `${urlObj.protocol}//${urlObj.host}${urlObj.pathname}`;
+            this.assetUrlMap.set(urlWithoutQuery, relativePath);
+
+            // Store pathname only (for relative matching)
+            this.assetUrlMap.set(urlObj.pathname, relativePath);
+
+            // Store both http and https versions
+            if (urlObj.protocol === 'https:') {
+              this.assetUrlMap.set(`http://${urlObj.host}${urlObj.pathname}`, relativePath);
+            } else if (urlObj.protocol === 'http:') {
+              this.assetUrlMap.set(`https://${urlObj.host}${urlObj.pathname}`, relativePath);
             }
+
+            // Store protocol-relative version
+            this.assetUrlMap.set(`//${urlObj.host}${urlObj.pathname}`, relativePath);
+
+            // Store URL-decoded version if different
+            const decodedPath = decodeURIComponent(urlObj.pathname);
+            if (decodedPath !== urlObj.pathname) {
+              this.assetUrlMap.set(decodedPath, relativePath);
+              this.assetUrlMap.set(`${urlObj.protocol}//${urlObj.host}${decodedPath}`, relativePath);
+            }
+
+            // Store pathname WITHOUT leading slash (for relative references in HTML)
+            if (urlObj.pathname.startsWith('/')) {
+              this.assetUrlMap.set(urlObj.pathname.slice(1), relativePath);
+              if (decodedPath !== urlObj.pathname) {
+                this.assetUrlMap.set(decodedPath.slice(1), relativePath);
+              }
+            }
+
           } catch {
             // Ignore URL parsing errors
           }
@@ -949,6 +1435,36 @@ export class WebsiteCloner {
 
         // Get HTML content
       html = await this.jsVerification.capturePostRenderState(page);
+
+      // Extract CSS animations and computed styles for visual fidelity
+      try {
+        const animationResult = await this.cssAnimationExtractor.extractAnimations(page, url);
+        const computedResult = await this.computedStyleCapture.captureStyles(page);
+
+        // Inject captured styles into HTML
+        if (animationResult.injectableCSS || computedResult.injectableCSS) {
+          const styleBlock = `<style type="text/css" data-merlin="captured-styles">
+${animationResult.injectableCSS}
+${computedResult.injectableCSS}
+</style>`;
+
+          // Inject before </head> or at start of <body>
+          if (html.includes('</head>')) {
+            html = html.replace('</head>', `${styleBlock}\n</head>`);
+          } else if (html.includes('<body')) {
+            html = html.replace(/<body([^>]*)>/, `<body$1>\n${styleBlock}`);
+          }
+
+          await this.logger.debug('Captured CSS animations/styles', {
+            url,
+            keyframes: animationResult.stats.keyframesCount,
+            animations: animationResult.stats.animationsCount,
+            computedRules: computedResult.rulesGenerated,
+          });
+        }
+      } catch (styleError) {
+        await this.logger.warn('Failed to extract CSS animations/styles', { url, error: String(styleError) });
+      }
 
       // Get page path
         const pagePath = this.getPagePath(url, options.outputDir);
@@ -1012,10 +1528,18 @@ export class WebsiteCloner {
         const links = await this.spaDetector.discoverRoutes(page, url);
       const discoveredLinks: string[] = [];
         for (const link of links) {
-          const absoluteUrl = new URL(link, url).href;
-          if (!visited.has(absoluteUrl) && this.isSameDomain(absoluteUrl, url)) {
-          discoveredLinks.push(absoluteUrl);
-        }
+          // Skip invalid or empty links
+          if (!link || link === '//' || link === '/' || link.startsWith('javascript:') || link.startsWith('mailto:') || link.startsWith('tel:')) {
+            continue;
+          }
+          try {
+            const absoluteUrl = new URL(link, url).href;
+            if (!visited.has(absoluteUrl) && this.isSameDomain(absoluteUrl, url)) {
+              discoveredLinks.push(absoluteUrl);
+            }
+          } catch {
+            // Invalid URL, skip it
+          }
       }
       
       // Stop WebSocket capture and save data
@@ -1069,10 +1593,15 @@ export class WebsiteCloner {
       }
       
       // Build error message with recovery info
+      // IMPORTANT: Include raw error message for learning system to properly categorize
+      // The raw error contains details like "Runtime.callFunctionOn timed out" or "Target closed"
+      const rawErrorMsg = errorObj.message || String(error);
       let errorMessage = `Failed to clone ${url}: ${formatted.userMessage} (${formatted.code})`;
       if (formatted.recovery && formatted.recovery.suggestions.length > 0) {
         errorMessage += `\nRecovery suggestions: ${formatted.recovery.suggestions.slice(0, 2).join(', ')}`;
       }
+      // Append raw error for learning categorization (will be parsed by categorizeError)
+      errorMessage += `\n[RAW: ${rawErrorMsg}]`;
       results.errors.push(errorMessage);
       
       // Close page if exists
@@ -1096,8 +1625,9 @@ export class WebsiteCloner {
    */
   private async clonePages(
     browser: Browser,
-    options: CloneOptions
-  ): Promise<{ pagesCloned: number; assetsCaptured: number; errors: string[] }> {
+    options: CloneOptions,
+    cloneStartTime?: number
+  ): Promise<{ pagesCloned: number; assetsCaptured: number; errors: string[]; timeLimitReached?: boolean }> {
     const visited = new Set<string>();
     const toVisit: Array<{ url: string; depth: number; priority?: number }> = [
       { url: options.url, depth: 0, priority: 1.0 }
@@ -1154,10 +1684,11 @@ export class WebsiteCloner {
     // Sort by priority (highest first)
     toVisit.sort((a, b) => (b.priority || 0) - (a.priority || 0));
 
-    const results = { pagesCloned: 0, assetsCaptured: 0, errors: [] as string[] };
+    const results = { pagesCloned: 0, assetsCaptured: 0, errors: [] as string[], timeLimitReached: false };
     const maxPages = options.unlimited ? Infinity : (options.maxPages || 100);
     const maxDepth = options.unlimited ? Infinity : (options.maxDepth || 5);
-    const concurrency = options.concurrency || 50; // Process 50 pages in parallel
+    const concurrency = options.concurrency || 5; // Process 5 pages in parallel (reduced from 50 to prevent race conditions)
+    const timeLimitMs = options.timeLimitMinutes ? options.timeLimitMinutes * 60 * 1000 : 0;
     
     const limit = pLimit(concurrency);
     
@@ -1178,6 +1709,21 @@ export class WebsiteCloner {
 
     // Process pages in parallel until queue is empty or limit reached
     while (toVisit.length > 0 && results.pagesCloned < maxPages) {
+      // Check time limit
+      if (timeLimitMs > 0 && cloneStartTime) {
+        const elapsed = Date.now() - cloneStartTime;
+        if (elapsed >= timeLimitMs) {
+          const elapsedMinutes = (elapsed / 60000).toFixed(1);
+          await this.logger.info(`Time limit reached (${elapsedMinutes} minutes). Stopping clone.`, {
+            url: options.url,
+            pagesCloned: results.pagesCloned,
+            timeLimitMinutes: options.timeLimitMinutes
+          });
+          results.timeLimitReached = true;
+          break;
+        }
+      }
+
       // Get batch of URLs to process (up to concurrency limit)
       const batch: Array<{ url: string; depth: number }> = [];
       while (batch.length < concurrency && toVisit.length > 0 && results.pagesCloned < maxPages) {
@@ -1234,6 +1780,171 @@ export class WebsiteCloner {
 
 
   /**
+   * Decodes HTML entities in a string
+   */
+  private decodeHtmlEntities(str: string): string {
+    return str
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&#x27;/g, "'")
+      .replace(/&#x2F;/g, '/');
+  }
+
+  /**
+   * Normalizes a URL for matching - removes query strings, fragments, and normalizes protocol
+   */
+  private normalizeUrlForMatching(url: string): string[] {
+    const variants: string[] = [url];
+
+    // Also add HTML-decoded version
+    const decodedHtml = this.decodeHtmlEntities(url);
+    if (decodedHtml !== url) {
+      variants.push(decodedHtml);
+    }
+
+    try {
+      // Handle protocol-relative URLs
+      let normalizedUrl = decodedHtml; // Use decoded version
+      if (normalizedUrl.startsWith('//')) {
+        normalizedUrl = 'https:' + normalizedUrl;
+        variants.push('http:' + decodedHtml);
+        variants.push('https:' + decodedHtml);
+      }
+
+      const urlObj = new URL(normalizedUrl.startsWith('http') ? normalizedUrl : 'https://dummy.com' + normalizedUrl);
+
+      // Add URL without query string and fragment
+      const baseUrl = `${urlObj.protocol}//${urlObj.host}${urlObj.pathname}`;
+      variants.push(baseUrl);
+
+      // Add pathname only (with and without leading slash)
+      variants.push(urlObj.pathname);
+      if (urlObj.pathname.startsWith('/')) {
+        variants.push(urlObj.pathname.slice(1));
+      }
+
+      // Add URL decoded version
+      const decodedPath = decodeURIComponent(urlObj.pathname);
+      if (decodedPath !== urlObj.pathname) {
+        variants.push(decodedPath);
+        variants.push(`${urlObj.protocol}//${urlObj.host}${decodedPath}`);
+        if (decodedPath.startsWith('/')) {
+          variants.push(decodedPath.slice(1));
+        }
+      }
+
+      // Add both http and https versions
+      if (urlObj.protocol === 'https:') {
+        variants.push(`http://${urlObj.host}${urlObj.pathname}`);
+      } else if (urlObj.protocol === 'http:') {
+        variants.push(`https://${urlObj.host}${urlObj.pathname}`);
+      }
+
+      // Add protocol-relative version
+      variants.push(`//${urlObj.host}${urlObj.pathname}`);
+
+    } catch {
+      // Invalid URL, just return original
+    }
+
+    return [...new Set(variants)]; // Remove duplicates
+  }
+
+  /**
+   * Builds a comprehensive URL lookup map from assetUrlMap
+   * Maps all possible URL variations to local paths
+   */
+  private buildUrlLookupMap(outputDir: string, basePath: string): Map<string, string> {
+    const lookupMap = new Map<string, string>();
+
+    for (const [originalUrl, relativePath] of this.assetUrlMap.entries()) {
+      const htmlRelativePath = path.relative(basePath, path.join(outputDir, relativePath)).replace(/\\/g, '/');
+
+      // Add all normalized variants of the URL
+      const variants = this.normalizeUrlForMatching(originalUrl);
+      for (const variant of variants) {
+        if (!lookupMap.has(variant)) {
+          lookupMap.set(variant, htmlRelativePath);
+        }
+      }
+    }
+
+    return lookupMap;
+  }
+
+  /**
+   * Updates HTML files after image optimization changes file extensions
+   * For example: .jpg -> .webp
+   */
+  private async updateHtmlForOptimizedImages(
+    outputDir: string,
+    pathChanges: Map<string, string>
+  ): Promise<void> {
+    if (pathChanges.size === 0) return;
+
+    const htmlFiles = await this.findHtmlFiles(outputDir);
+    const cssFiles = await this.findCssFiles(outputDir);
+
+    // Build simple replacement pairs: oldFilename -> newFilename
+    const replacements: Array<{ oldFilename: string; newFilename: string }> = [];
+
+    for (const [oldPath, newPath] of pathChanges) {
+      const oldFilename = path.basename(oldPath);
+      const newFilename = path.basename(newPath);
+      if (oldFilename !== newFilename) {
+        replacements.push({ oldFilename, newFilename });
+      }
+    }
+
+    if (replacements.length === 0) return;
+
+    // Process each HTML file with simple string replacement
+    for (const htmlFile of htmlFiles) {
+      try {
+        let html = await fs.readFile(htmlFile, 'utf-8');
+        let changed = false;
+
+        for (const { oldFilename, newFilename } of replacements) {
+          if (html.includes(oldFilename)) {
+            html = html.split(oldFilename).join(newFilename);
+            changed = true;
+          }
+        }
+
+        if (changed) {
+          await fs.writeFile(htmlFile, html, 'utf-8');
+        }
+      } catch (err) {
+        // Ignore errors for individual files
+      }
+    }
+
+    // Also update CSS files that might reference images
+    for (const cssFile of cssFiles) {
+      try {
+        let css = await fs.readFile(cssFile, 'utf-8');
+        let changed = false;
+
+        for (const { oldFilename, newFilename } of replacements) {
+          if (css.includes(oldFilename)) {
+            css = css.split(oldFilename).join(newFilename);
+            changed = true;
+          }
+        }
+
+        if (changed) {
+          await fs.writeFile(cssFile, css, 'utf-8');
+        }
+      } catch (err) {
+        // Ignore errors
+      }
+    }
+  }
+
+  /**
    * Fixes all links in output directory
    */
   private async fixAllLinksInOutput(
@@ -1246,60 +1957,106 @@ export class WebsiteCloner {
       let html = await fs.readFile(htmlFile, 'utf-8');
       const basePath = path.dirname(htmlFile);
 
-      // First: Replace external URLs with local asset paths
-      // This handles CDN CSS/JS files that were downloaded
-      for (const [originalUrl, relativePath] of this.assetUrlMap.entries()) {
-        // Calculate relative path from this HTML file to the asset
-        const htmlRelativePath = path.relative(basePath, path.join(outputDir, relativePath)).replace(/\\/g, '/');
+      // Build comprehensive URL lookup map for this HTML file
+      const urlLookupMap = this.buildUrlLookupMap(outputDir, basePath);
 
-        // Build list of URL variations to match
-        // (absolute URL, relative path from root, etc.)
-        const urlsToMatch: string[] = [originalUrl];
+      // Match all URLs in the HTML and replace them
+      // Pattern matches: src="...", href="...", url(...), data-src="...", srcset="..."
+      const urlPatternRegex = /((?:src|href|data-src|data-href|poster|data-poster)\s*=\s*["'])([^"']+)(["'])|url\s*\(\s*["']?([^"')]+)["']?\s*\)|(srcset\s*=\s*["'])([^"']+)(["'])/gi;
 
-        try {
-          const urlObj = new URL(originalUrl);
-          // Add the pathname (e.g., /docs/5.3/dist/css/bootstrap.min.css)
-          urlsToMatch.push(urlObj.pathname);
-
-          // Also add relative versions that might appear in HTML
-          // Calculate relative from HTML file to the original resource location
-          const htmlDir = path.relative(outputDir, basePath).replace(/\\/g, '/');
-          const assetPath = urlObj.pathname;
-
-          // If HTML is in a subdirectory, calculate the relative path
-          if (htmlDir) {
-            const htmlDepth = htmlDir.split('/').filter(p => p).length;
-            const relativeFromHtml = '../'.repeat(htmlDepth) + assetPath.replace(/^\//, '');
-            urlsToMatch.push(relativeFromHtml);
-          }
-        } catch {
-          // Not a valid URL, just use original
+      html = html.replace(urlPatternRegex, (match, attrPrefix, attrUrl, attrSuffix, cssUrl, srcsetPrefix, srcsetValue, srcsetSuffix) => {
+        // Handle srcset separately (contains multiple URLs)
+        if (srcsetPrefix && srcsetValue) {
+          const fixedSrcset = srcsetValue.split(',').map((part: string) => {
+            const trimmed = part.trim();
+            const [url, descriptor] = trimmed.split(/\s+/);
+            if (url) {
+              const variants = this.normalizeUrlForMatching(url);
+              for (const variant of variants) {
+                const localPath = urlLookupMap.get(variant);
+                if (localPath) {
+                  return descriptor ? `${localPath} ${descriptor}` : localPath;
+                }
+              }
+            }
+            return trimmed;
+          }).join(', ');
+          return `${srcsetPrefix}${fixedSrcset}${srcsetSuffix}`;
         }
 
-        // Replace all occurrences of any URL variation with the local path
-        for (const urlToMatch of urlsToMatch) {
-          const escapedUrl = urlToMatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          const urlPatterns = [
-            new RegExp(`(href|src|data-src)\\s*=\\s*["']${escapedUrl}["']`, 'gi'),
-            new RegExp(`url\\(["']?${escapedUrl}["']?\\)`, 'gi'),
-            new RegExp(`(href|src)\\s*=\\s*${escapedUrl}(?=[\\s>])`, 'gi'),
-          ];
+        // Handle CSS url()
+        if (cssUrl) {
+          const variants = this.normalizeUrlForMatching(cssUrl);
+          for (const variant of variants) {
+            const localPath = urlLookupMap.get(variant);
+            if (localPath) {
+              return `url('${localPath}')`;
+            }
+          }
+          return match;
+        }
 
-          for (const pattern of urlPatterns) {
-            html = html.replace(pattern, (match) => {
-              // Preserve the attribute name and quotes
-              if (match.includes('url(')) {
-                return `url('${htmlRelativePath}')`;
-              }
-              const attrMatch = match.match(/^(href|src|data-src)\s*=\s*/i);
-              if (attrMatch) {
-                return `${attrMatch[1]}="${htmlRelativePath}"`;
-              }
-              return match;
-            });
+        // Handle regular attributes (src, href, etc.)
+        if (attrPrefix && attrUrl) {
+          const variants = this.normalizeUrlForMatching(attrUrl);
+          for (const variant of variants) {
+            const localPath = urlLookupMap.get(variant);
+            if (localPath) {
+              return `${attrPrefix}${localPath}${attrSuffix}`;
+            }
           }
         }
-      }
+
+        return match;
+      });
+
+      // Second pass: Fix internal page links to proper relative paths with /index.html suffix
+      // This handles links like /about -> ../about/index.html (from subdirectory)
+      // Or /about -> ./about/index.html (from root)
+      const htmlRelDir = path.relative(outputDir, basePath).replace(/\\/g, '/');
+      const htmlDepth = htmlRelDir ? htmlRelDir.split('/').filter(p => p).length : 0;
+
+      const internalLinkRegex = /(href\s*=\s*["'])([^"'#?]+)(["'])/gi;
+      html = html.replace(internalLinkRegex, (match, prefix, href, suffix) => {
+        // Skip external URLs, assets, already has extension, or special links
+        if (href.startsWith('http') || href.startsWith('//') ||
+            href.startsWith('assets/') || href.startsWith('../assets/') ||
+            href.endsWith('/index.html') || href === '#' || href === '' ||
+            href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('javascript:')) {
+          return match;
+        }
+
+        // Skip if already has a file extension (not a page link)
+        if (/\.[a-z]{2,4}$/i.test(href)) {
+          return match;
+        }
+
+        // Handle absolute paths (start with /)
+        if (href.startsWith('/')) {
+          const cleanPath = href.replace(/\/$/, ''); // Remove trailing slash
+          if (cleanPath) {
+            // Calculate relative path from current HTML to target page
+            const upDirs = '../'.repeat(htmlDepth);
+            const targetPath = cleanPath.replace(/^\//, ''); // Remove leading slash
+            const fixedHref = upDirs + (targetPath ? targetPath + '/index.html' : 'index.html');
+            return `${prefix}${fixedHref}${suffix}`;
+          }
+        }
+
+        // Handle relative paths without extension (page links)
+        // Remove leading ./ and trailing /
+        let cleanHref = href.replace(/^\.\//, '').replace(/\/$/, '');
+        // Check if it has a file extension (skip if it does)
+        const hasExtension = /\.[a-z0-9]{2,5}$/i.test(cleanHref);
+        if (cleanHref && !hasExtension) {
+          // Preserve ./ prefix if original had it
+          const prefix2 = href.startsWith('./') ? './' : '';
+          const fixedHref = prefix2 + cleanHref + '/index.html';
+          return `${prefix}${fixedHref}${suffix}`;
+        }
+
+        return match;
+      });
 
       const rewriteOptions: RewriteOptions = {
         baseUrl,
@@ -1337,14 +2094,22 @@ export class WebsiteCloner {
           const cssPath = path.join(cssDir, file);
           let css = await fs.readFile(cssPath, 'utf-8');
 
-          // Replace external URLs with local paths
-          for (const [originalUrl, relativePath] of this.assetUrlMap.entries()) {
-            // Calculate relative path from CSS file to the asset
-            const cssRelativePath = path.relative(cssDir, path.join(outputDir, relativePath)).replace(/\\/g, '/');
+          // Build lookup map for this CSS file
+          const cssLookupMap = this.buildUrlLookupMap(outputDir, cssDir);
 
-            const escapedUrl = originalUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            css = css.replace(new RegExp(`url\\(["']?${escapedUrl}["']?\\)`, 'gi'), `url('${cssRelativePath}')`);
-          }
+          // Match all url() patterns in CSS and replace them
+          const cssUrlRegex = /url\s*\(\s*["']?([^"')]+)["']?\s*\)/gi;
+          css = css.replace(cssUrlRegex, (match, cssUrl) => {
+            // Try to find a matching local path
+            const variants = this.normalizeUrlForMatching(cssUrl);
+            for (const variant of variants) {
+              const localPath = cssLookupMap.get(variant);
+              if (localPath) {
+                return `url('${localPath}')`;
+              }
+            }
+            return match;
+          });
 
           await fs.writeFile(cssPath, css, 'utf-8');
         }
@@ -1402,6 +2167,26 @@ export class WebsiteCloner {
           const subFiles = await this.findHtmlFiles(fullPath);
           files.push(...subFiles);
         } else if (entry.isFile() && entry.name.endsWith('.html')) {
+          files.push(fullPath);
+        }
+      }
+    } catch {}
+    return files;
+  }
+
+  /**
+   * Finds CSS files
+   */
+  private async findCssFiles(dir: string): Promise<string[]> {
+    const files: string[] = [];
+    try {
+      const entries = await fs.readdir(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          const subFiles = await this.findCssFiles(fullPath);
+          files.push(...subFiles);
+        } else if (entry.isFile() && entry.name.endsWith('.css')) {
           files.push(fullPath);
         }
       }

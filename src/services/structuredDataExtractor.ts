@@ -180,11 +180,20 @@ export class StructuredDataExtractor {
           url.includes('/api/') || 
           url.includes('/rest/') ||
           url.includes('/graphql')) {
+        let requestBody = undefined;
+        try {
+          const postData = request.postData();
+          if (postData) {
+            requestBody = JSON.parse(postData);
+          }
+        } catch (e) {
+          // Not valid JSON, skip
+        }
         endpoints.push({
           url,
           method,
           requestHeaders: request.headers(),
-          requestBody: request.postData() ? JSON.parse(request.postData() || '{}') : undefined
+          requestBody
         });
       }
     });

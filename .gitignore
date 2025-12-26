@@ -37,6 +37,26 @@ test-screenshots/
 *.warc
 nul
 
+# Test output directories
+*-test-*/
+test-*-clone/
+validate-fixes-*/
+quick-test-*/
+jeton-test-*/
+osmo-test-*/
+template2-test-*/
+formless-test-*/
+accounting-firms-test-*/
+learning-test-*/
+osmo-learning-test-*/
+hard-test/
+hardcore-test/
+direct-test-*/
+stress-test-results/
+
+# Screenshots
+*.png
+
 # Data files (keep structure, ignore content)
 data/*.json
 !data/.gitkeep

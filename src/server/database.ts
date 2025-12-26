@@ -95,7 +95,8 @@ class Database {
 
   constructor() {
     this.load();
-    this.scanExistingClones();
+    // Disabled: Stop recovering orphan jobs from disk
+    // this.scanExistingClones();
   }
 
   // ==================== PERSISTENCE ====================

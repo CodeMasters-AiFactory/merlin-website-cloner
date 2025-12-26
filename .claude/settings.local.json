@@ -7,7 +7,13 @@
       "Bash(npx tsc:*)",
       "Bash(curl:*)",
       "Bash(cat:*)",
-      "Bash(TOKEN=\"eyJpZCI6IjE3NjYyMzAwNTgyMDQiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJuYW1lIjoiVGVzdCBVc2VyIn0=\" curl -s http://localhost:3000/api/jobs  -H \"Authorization: Bearer $TOKEN\")"
+      "Bash(TOKEN=\"eyJpZCI6IjE3NjYyMzAwNTgyMDQiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJuYW1lIjoiVGVzdCBVc2VyIn0=\" curl -s http://localhost:3000/api/jobs  -H \"Authorization: Bearer $TOKEN\")",
+      "Bash(npx ts-node:*)",
+      "Bash(npx tsx:*)",
+      "Bash(npm search:*)",
+      "Bash(\"/c/Program Files/Microsoft VS Code/bin/code\" --list-extensions)",
+      "Bash(\"/c/Users/DEV1/AppData/Local/Programs/Microsoft VS Code/bin/code\" --list-extensions)",
+      "Bash(\"/c/Program Files/cursor/resources/app/bin/cursor\" --list-extensions)"
     ]
   }
 }

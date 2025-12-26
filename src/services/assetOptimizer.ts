@@ -86,10 +86,27 @@ export class AssetOptimizer {
       }
 
       // Load image with Sharp
-      let pipeline = sharp(filePath);
+      let pipeline: sharp.Sharp;
+      let metadata: sharp.Metadata;
 
-      // Get image metadata to check dimensions
-      const metadata = await pipeline.metadata();
+      try {
+        pipeline = sharp(filePath);
+        // Get image metadata to check dimensions
+        metadata = await pipeline.metadata();
+      } catch (loadError: any) {
+        // Some AVIF files use unsupported bitstreams - skip them gracefully
+        if (loadError.message?.includes('heif') || loadError.message?.includes('AVIF') ||
+            loadError.message?.includes('Bitstream') || loadError.message?.includes('bad seek')) {
+          // Keep original file as-is
+          return {
+            originalSize,
+            optimizedSize: originalSize,
+            savings: 0,
+            format: ext,
+          };
+        }
+        throw loadError;
+      }
 
       // Resize if needed (max 2560px width by default)
       const maxWidth = options.maxWidth || 2560;
@@ -174,26 +191,47 @@ export class AssetOptimizer {
 
   /**
    * Optimizes all images in a directory (BATCH PROCESSING)
+   * Returns optimization stats AND a mapping of original paths to new paths (for format conversion)
    */
   async optimizeAllImages(
     directory: string,
     options: OptimizationOptions['images'] = { compress: true, quality: 80, maxWidth: 2560 }
-  ): Promise<{ totalSavings: number; filesProcessed: number; totalOriginalSize: number; totalOptimizedSize: number }> {
+  ): Promise<{
+    totalSavings: number;
+    filesProcessed: number;
+    totalOriginalSize: number;
+    totalOptimizedSize: number;
+    pathChanges: Map<string, string>; // Maps original relative path -> new relative path (for format changes)
+  }> {
     const imageFiles = await this.findImageFiles(directory);
+    const pathChanges = new Map<string, string>();
 
     if (imageFiles.length === 0) {
       return {
         totalSavings: 0,
         filesProcessed: 0,
         totalOriginalSize: 0,
-        totalOptimizedSize: 0
+        totalOptimizedSize: 0,
+        pathChanges
       };
     }
 
     // Process 20 images concurrently for performance
     const limit = pLimit(20);
     const results = await Promise.all(
-      imageFiles.map(file => limit(() => this.optimizeImage(file, options)))
+      imageFiles.map(file => limit(async () => {
+        const result = await this.optimizeImage(file, options);
+        if (result) {
+          // Track path changes for format conversions
+          const ext = path.extname(file).toLowerCase();
+          if (result.format && result.format !== ext) {
+            // Store relative paths for easier matching in HTML
+            const newPath = file.replace(new RegExp(ext.replace('.', '\\.') + '$', 'i'), result.format);
+            pathChanges.set(file, newPath);
+          }
+        }
+        return result;
+      }))
     );
 
     // Calculate totals
@@ -208,7 +246,8 @@ export class AssetOptimizer {
       totalSavings,
       filesProcessed: validResults.length,
       totalOriginalSize,
-      totalOptimizedSize
+      totalOptimizedSize,
+      pathChanges
     };
   }
 

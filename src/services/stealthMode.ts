@@ -47,7 +47,8 @@ export async function createStealthBrowser(
   const userAgentManager = new UserAgentManager();
   const userAgentConfig = userAgentManager.getNextUserAgent();
 
-  // Build Chrome args array
+  // Build Chrome args array - OPTIMIZED for low CPU/RAM usage
+  // Target: max 50% CPU, max 8GB RAM (user has 16GB, needs to run other apps)
   const chromeArgs = [
     '--no-sandbox',
     '--disable-setuid-sandbox',
@@ -67,6 +68,24 @@ export async function createStealthBrowser(
     '--disable-blink-features=AutomationControlled',
     '--exclude-switches=enable-automation',
     '--disable-infobars',
+    // === MEMORY OPTIMIZATION FLAGS ===
+    '--js-flags=--max-old-space-size=512',        // Limit JS heap to 512MB
+    '--memory-pressure-off',                       // Disable memory pressure warnings
+    '--single-process',                            // Run in single process mode (less RAM)
+    '--disable-extensions',                        // No extensions
+    '--disable-plugins',                           // No plugins
+    '--disable-images',                            // Don't load images in browser (we download separately)
+    '--blink-settings=imagesEnabled=false',        // Disable image rendering
+    '--disable-software-rasterizer',
+    '--disable-canvas-aa',
+    '--disable-2d-canvas-clip-aa',
+    '--disable-gl-drawing-for-tests',
+    '--renderer-process-limit=1',                  // Only 1 renderer process
+    '--disable-site-isolation-trials',
+    '--disable-features=LazyFrameLoading',
+    '--aggressive-cache-discard',                  // Discard cached data aggressively
+    '--disable-offline-auto-reload',
+    '--disable-popup-blocking',
   ];
 
   // Store proxy credentials for later if provided

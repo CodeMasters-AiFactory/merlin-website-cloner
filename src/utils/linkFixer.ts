@@ -120,9 +120,17 @@ export function fixLinksInHtml(html: string, options: LinkFixOptions): FixResult
   });
 
   // Fix <link> href attributes (stylesheets, icons, etc.)
+  // Skip canonical links as they are metadata, not navigation
   $('link[href]').each((_, element) => {
     const $el = $(element);
+    const rel = $el.attr('rel') || '';
     const href = $el.attr('href');
+
+    // Skip canonical links - they shouldn't have /index.html added
+    if (rel.toLowerCase() === 'canonical') {
+      return;
+    }
+
     if (href) {
       const result = rewriteUrl(href, options);
       if (!result.isExternal) {

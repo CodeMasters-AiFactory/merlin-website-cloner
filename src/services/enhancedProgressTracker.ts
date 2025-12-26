@@ -174,9 +174,9 @@ export class EnhancedProgressTracker {
   toJSON(): any {
     return {
       ...this.state,
-      pages: Array.from(this.state.pages.entries()).map(([url, page]) => ({
-        url,
+      pages: Array.from(this.state.pages.entries()).map(([pageUrl, page]) => ({
         ...page,
+        url: pageUrl, // Use map key as canonical URL
       })),
     };
   }
@@ -203,7 +203,7 @@ export class EnhancedProgressTracker {
   /**
    * Add activity to recent list
    */
-  private addActivity(type: 'page_start' | 'page_complete' | 'asset_download' | 'error' | 'warning', message: string, url?: string): void {
+  public addActivity(type: 'page_start' | 'page_complete' | 'asset_download' | 'error' | 'warning', message: string, url?: string): void {
     this.state.recentActivity.unshift({
       timestamp: Date.now(),
       type,

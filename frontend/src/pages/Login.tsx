@@ -5,7 +5,6 @@ import api from '../utils/api'
 
 export default function Login() {
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const navigate = useNavigate()
 
@@ -14,7 +13,8 @@ export default function Login() {
     setError('')
 
     try {
-      const response = await api.post('/auth/login', { email, password })
+      // PASSWORD-LESS LOGIN: Only send email
+      const response = await api.post('/auth/login', { email })
       localStorage.setItem('token', response.data.token)
       navigate('/dashboard')
     } catch (error: any) {
@@ -33,7 +33,7 @@ export default function Login() {
             <span className="text-3xl font-bold text-gray-900">Merlin Clone</span>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-          <p className="text-gray-600">Sign in to your account</p>
+          <p className="text-gray-600">Enter your email to sign in (no password required)</p>
         </div>
 
         <div className="card">
@@ -46,40 +46,20 @@ export default function Login() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
+                Email Address or Username
               </label>
               <input
-                type="email"
+                type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="input"
-                placeholder="you@example.com"
+                placeholder="demo or test@example.com"
+                autoFocus
               />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="input"
-                placeholder="••••••••"
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <label className="flex items-center">
-                <input type="checkbox" className="rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
-                <span className="ml-2 text-sm text-gray-600">Remember me</span>
-              </label>
-              <a href="#" className="text-sm text-primary-600 hover:text-primary-700">
-                Forgot password?
-              </a>
+              <p className="mt-2 text-sm text-gray-500">
+                Try: <code className="bg-gray-100 px-2 py-1 rounded">demo</code> or <code className="bg-gray-100 px-2 py-1 rounded">test@example.com</code>
+              </p>
             </div>
 
             <button type="submit" className="btn-primary w-full flex items-center justify-center">

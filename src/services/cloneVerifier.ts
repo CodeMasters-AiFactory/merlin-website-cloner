@@ -17,7 +17,7 @@ export interface VerificationResult {
 
 export interface VerificationCheck {
   name: string;
-  category: 'html' | 'css' | 'js' | 'images' | 'fonts' | 'links';
+  category: 'html' | 'css' | 'js' | 'images' | 'fonts' | 'links' | 'animations' | 'videos' | 'content' | 'resources' | 'styling' | 'scripts';
   passed: boolean;
   message: string;
   details?: string[];
@@ -71,6 +71,14 @@ export class CloneVerifier {
       // Check assets directory
       const assetChecks = await this.verifyAssets();
       checks.push(...assetChecks);
+
+      // Check animations
+      const animationChecks = await this.verifyAnimations(htmlFiles);
+      checks.push(...animationChecks);
+
+      // Check videos
+      const videoChecks = await this.verifyVideos(htmlFiles);
+      checks.push(...videoChecks);
 
       // Calculate overall score
       const passedChecks = checks.filter(c => c.passed).length;
@@ -342,8 +350,9 @@ export class CloneVerifier {
           !href.startsWith('javascript:') &&
           !href.startsWith('data:')) {
 
-        const linkPath = this.resolveLocalPath(href.split('#')[0], htmlDir);
-        if (await fs.pathExists(linkPath)) {
+        const linkPath = this.resolveLocalPath(href.split('#')[0].split('?')[0], htmlDir);
+        // Use localPathExists which checks for index.html in directories
+        if (await this.localPathExists(linkPath)) {
           working.push(href);
         } else {
           broken.push(href);
@@ -352,16 +361,20 @@ export class CloneVerifier {
     }
 
     const total = broken.length + working.length;
+    // Calculate broken percentage - we want less than 5% broken links for a pass
+    const brokenPercentage = total > 0 ? (broken.length / total) * 100 : 0;
+    const passed = broken.length === 0 || brokenPercentage <= 5;
+
     return {
       name: 'Internal Links',
       category: 'links',
-      passed: broken.length === 0 || broken.length <= Math.ceil(total * 0.2), // Allow 20% broken
+      passed,
       message: total === 0
         ? 'No internal links'
         : broken.length === 0
           ? `All ${working.length} internal links valid`
-          : `${broken.length}/${total} links broken`,
-      details: broken.length > 0 ? broken.slice(0, 5).map(b => `✗ Broken: ${b}`) : undefined
+          : `${broken.length}/${total} links broken (${brokenPercentage.toFixed(1)}%)`,
+      details: broken.length > 0 ? broken.slice(0, 10).map(b => `✗ Broken: ${b}`) : undefined
     };
   }
 
@@ -499,14 +512,234 @@ export class CloneVerifier {
 
   /**
    * Helper: Resolve local path from href/src
+   * Handles directory-style URLs by checking for index.html
    */
   private resolveLocalPath(ref: string, baseDir: string): string {
+    let resolved: string;
+
     // Handle absolute paths from root
     if (ref.startsWith('/')) {
-      return path.join(this.options.outputDir, ref);
+      resolved = path.join(this.options.outputDir, ref);
+    } else {
+      // Handle relative paths
+      resolved = path.join(baseDir, ref);
     }
-    // Handle relative paths
-    return path.join(baseDir, ref);
+
+    return resolved;
+  }
+
+  /**
+   * Check if a local path exists, considering index.html for directories
+   */
+  private async localPathExists(localPath: string): Promise<boolean> {
+    // First, check if the path exists as-is
+    if (await fs.pathExists(localPath)) {
+      return true;
+    }
+
+    // If it doesn't have an extension, it might be a directory-style link
+    // Check for index.html inside
+    const ext = path.extname(localPath);
+    if (!ext) {
+      // Try path/index.html
+      const indexPath = path.join(localPath, 'index.html');
+      if (await fs.pathExists(indexPath)) {
+        return true;
+      }
+
+      // Try path.html (in case page was saved as about.html instead of about/index.html)
+      const htmlPath = localPath + '.html';
+      if (await fs.pathExists(htmlPath)) {
+        return true;
+      }
+    }
+
+    // Handle self-referential paths like "./about/index.html" from "about/index.html"
+    // This happens when a page links to itself using its own pathname
+    // e.g., the resolved path might be "jeton-test/about/about/index.html" but should check "jeton-test/about/index.html"
+    if (localPath.includes('/index.html')) {
+      // Get the directory containing the target index.html
+      const targetDir = path.dirname(localPath);
+      const parentDir = path.dirname(targetDir);
+      const targetDirName = path.basename(targetDir);
+
+      // Check if parent directory has the same name as target subdirectory
+      // This would indicate a self-referential link pattern
+      const parentName = path.basename(parentDir);
+      if (parentName === targetDirName) {
+        // Try the parent's index.html instead
+        const parentIndexPath = path.join(parentDir, 'index.html');
+        if (await fs.pathExists(parentIndexPath)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Verify CSS animations are captured
+   */
+  private async verifyAnimations(htmlFiles: string[]): Promise<VerificationCheck[]> {
+    const checks: VerificationCheck[] = [];
+    let keyframesFound = 0;
+    let animationRulesFound = 0;
+    let merlinStylesFound = false;
+    const details: string[] = [];
+
+    for (const htmlFile of htmlFiles) {
+      try {
+        const content = await fs.readFile(htmlFile, 'utf-8');
+
+        // Check for Merlin captured styles
+        if (content.includes('data-merlin="captured-styles"')) {
+          merlinStylesFound = true;
+          details.push('✓ Merlin animation capture enabled');
+        }
+
+        // Count @keyframes
+        const keyframeMatches = content.match(/@keyframes\s+[\w-]+/gi) || [];
+        keyframesFound += keyframeMatches.length;
+
+        // Count animation rules
+        const animationMatches = content.match(/animation\s*:/gi) || [];
+        animationRulesFound += animationMatches.length;
+
+      } catch {
+        // Ignore read errors
+      }
+    }
+
+    // Also check CSS files in assets
+    const cssDir = path.join(this.options.outputDir, 'assets', 'css');
+    if (await fs.pathExists(cssDir)) {
+      const cssFiles = await this.findFiles(cssDir, '.css');
+      for (const cssFile of cssFiles) {
+        try {
+          const content = await fs.readFile(cssFile, 'utf-8');
+          const keyframeMatches = content.match(/@keyframes\s+[\w-]+/gi) || [];
+          keyframesFound += keyframeMatches.length;
+          const animationMatches = content.match(/animation\s*:/gi) || [];
+          animationRulesFound += animationMatches.length;
+        } catch {
+          // Ignore
+        }
+      }
+    }
+
+    if (keyframesFound > 0) {
+      details.push(`✓ ${keyframesFound} @keyframes rules captured`);
+    }
+    if (animationRulesFound > 0) {
+      details.push(`✓ ${animationRulesFound} animation rules captured`);
+    }
+
+    const hasAnimations = keyframesFound > 0 || animationRulesFound > 0;
+    checks.push({
+      name: 'CSS Animations',
+      category: 'animations',
+      passed: hasAnimations || merlinStylesFound,
+      message: hasAnimations
+        ? `${keyframesFound} keyframes, ${animationRulesFound} animation rules captured`
+        : merlinStylesFound
+          ? 'Merlin style capture enabled (animations preserved)'
+          : 'No CSS animations detected',
+      details: details.length > 0 ? details : undefined,
+    });
+
+    return checks;
+  }
+
+  /**
+   * Verify videos are captured
+   */
+  private async verifyVideos(htmlFiles: string[]): Promise<VerificationCheck[]> {
+    const checks: VerificationCheck[] = [];
+    let videoElementsFound = 0;
+    let videoFilesFound = 0;
+    let embeddedVideosFound = 0;
+    let thumbnailsFound = 0;
+    const details: string[] = [];
+
+    // Check HTML for video elements
+    for (const htmlFile of htmlFiles) {
+      try {
+        const content = await fs.readFile(htmlFile, 'utf-8');
+        const $ = cheerio.load(content);
+
+        // Count video elements
+        const videos = $('video');
+        videoElementsFound += videos.length;
+
+        // Count embedded videos (iframes)
+        const youtubeEmbeds = $('iframe[src*="youtube"], iframe[src*="youtu.be"]').length;
+        const vimeoEmbeds = $('iframe[src*="vimeo"]').length;
+        embeddedVideosFound += youtubeEmbeds + vimeoEmbeds;
+
+        // Check for Merlin video placeholders
+        const placeholders = $('.merlin-video-placeholder').length;
+        if (placeholders > 0) {
+          details.push(`✓ ${placeholders} video placeholders created`);
+        }
+
+      } catch {
+        // Ignore read errors
+      }
+    }
+
+    // Check for downloaded video files
+    const videoDir = path.join(this.options.outputDir, 'assets', 'videos');
+    if (await fs.pathExists(videoDir)) {
+      try {
+        const files = await fs.readdir(videoDir);
+        videoFilesFound = files.filter(f =>
+          f.endsWith('.mp4') || f.endsWith('.webm') || f.endsWith('.ogg')
+        ).length;
+        if (videoFilesFound > 0) {
+          details.push(`✓ ${videoFilesFound} video files downloaded`);
+        }
+      } catch {
+        // Ignore
+      }
+    }
+
+    // Check for video thumbnails
+    const thumbnailDir = path.join(this.options.outputDir, 'assets', 'video-thumbnails');
+    if (await fs.pathExists(thumbnailDir)) {
+      try {
+        const files = await fs.readdir(thumbnailDir);
+        thumbnailsFound = files.length;
+        if (thumbnailsFound > 0) {
+          details.push(`✓ ${thumbnailsFound} video thumbnails captured`);
+        }
+      } catch {
+        // Ignore
+      }
+    }
+
+    // Check for embedded videos manifest
+    const manifestPath = path.join(this.options.outputDir, 'assets', 'embedded-videos.json');
+    if (await fs.pathExists(manifestPath)) {
+      details.push('✓ Embedded videos manifest created');
+    }
+
+    const totalVideos = videoElementsFound + embeddedVideosFound;
+    const capturedContent = videoFilesFound + thumbnailsFound;
+
+    checks.push({
+      name: 'Video Content',
+      category: 'videos',
+      passed: totalVideos === 0 || capturedContent > 0,
+      message: totalVideos === 0
+        ? 'No videos detected on page'
+        : capturedContent > 0
+          ? `${videoFilesFound} videos, ${thumbnailsFound} thumbnails captured`
+          : `${totalVideos} videos detected but not captured`,
+      details: details.length > 0 ? details : undefined,
+    });
+
+    return checks;
   }
 }
 

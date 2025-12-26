@@ -24,9 +24,10 @@ export class BrowserPool {
   private idleTimers: Map<Browser, NodeJS.Timeout> = new Map();
 
   constructor(options: BrowserPoolOptions = {}) {
-    this.maxSize = options.maxSize || 20;
-    this.minSize = options.minSize || 5;
-    this.idleTimeout = options.idleTimeout || 300000; // 5 minutes default
+    // REDUCED for low memory usage (max 8GB RAM target)
+    this.maxSize = options.maxSize || 2;   // Reduced from 20 to 2 max browsers
+    this.minSize = options.minSize || 1;   // Reduced from 5 to 1 min browser
+    this.idleTimeout = options.idleTimeout || 60000; // 1 minute (reduced from 5)
     this.userAgentManager = new UserAgentManager();
   }
 

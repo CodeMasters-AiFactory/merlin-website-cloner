@@ -7,8 +7,26 @@
 import type { Browser, Page } from 'puppeteer';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { createCanvas, loadImage, Image } from 'canvas';
 import { createHash } from 'crypto';
+
+// Canvas is optional - used for pixel comparison but not required
+let createCanvas: any = null;
+let loadImage: any = null;
+let canvasLoaded = false;
+
+async function ensureCanvas(): Promise<boolean> {
+  if (canvasLoaded) return createCanvas !== null;
+  canvasLoaded = true;
+  try {
+    const canvas = await import('canvas');
+    createCanvas = canvas.createCanvas;
+    loadImage = canvas.loadImage;
+    return true;
+  } catch {
+    console.warn('Canvas not available - using hash-based comparison only');
+    return false;
+  }
+}
 
 export interface ScreenshotConfig {
   viewport: { width: number; height: number };

@@ -184,36 +184,25 @@ app.post('/api/auth/signup', signupRateLimiter, authRateLimiter, async (req, res
   }
 });
 
-// POST /api/auth/login
-app.post('/api/auth/login', authRateLimiter, async (req, res) => {
+// POST /api/auth/login - PASSWORD-LESS LOGIN (No password verification, NO RATE LIMIT)
+app.post('/api/auth/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
-    
-    // DEBUG: Log what's being received
-    console.log('[DEBUG LOGIN] Email:', email, '| Password length:', password?.length);
+    const { email } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
+    // DEBUG: Log what's being received
+    console.log('[DEBUG LOGIN - PASSWORD-LESS] Email:', email);
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
     }
 
     const user = db.getUserByEmail(email.toLowerCase().trim());
     if (!user) {
-      // Don't reveal whether email exists
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ error: 'User not found' });
     }
 
-    // Verify password (supports legacy SHA256 and new bcrypt)
-    const isValid = await verifyPassword(password, user.passwordHash);
-    if (!isValid) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-
-    // Migrate legacy hash to bcrypt on successful login
-    if (isLegacyHash(user.passwordHash)) {
-      const newHash = await hashPassword(password);
-      db.updateUser(user.id, { passwordHash: newHash });
-      console.log(`[Auth] Migrated user ${user.id} to bcrypt`);
-    }
+    // PASSWORD REMOVED: No verification, instant login!
+    console.log(`[Auth] Password-less login for user ${user.id}`);
 
     // Generate proper JWT token
     const token = generateToken({
@@ -415,14 +404,26 @@ app.post('/api/clone', cloneRateLimiter, authenticateToken, async (req: AuthRequ
   }
 });
 
-// GET /api/jobs
+// GET /api/jobs - Admins see ALL jobs, regular users see only their own
 app.get('/api/jobs', authenticateToken, (req: AuthRequest, res) => {
   const userId = req.userId!;
+
+  // Get user to check admin status
+  const user = db.getUserById(userId);
+
+  // If user is admin, show ALL jobs from ALL users
+  if (user && (user.isAdmin || user.role === 'admin')) {
+    console.log(`[Admin Access] ${user.email} viewing ALL jobs`);
+    const allJobs = db.getAllJobs();
+    return res.json(allJobs);
+  }
+
+  // Regular users see only their own jobs
   const jobs = db.getJobsByUserId(userId);
   res.json(jobs);
 });
 
-// GET /api/jobs/:id
+// GET /api/jobs/:id - Admins can view any job, users can only view their own
 app.get('/api/jobs/:id', authenticateToken, (req: AuthRequest, res) => {
   const userId = req.userId!;
   const job = db.getJobById(req.params.id);
@@ -431,7 +432,12 @@ app.get('/api/jobs/:id', authenticateToken, (req: AuthRequest, res) => {
     return res.status(404).json({ error: 'Job not found' });
   }
 
-  if (job.userId !== userId) {
+  // Get user to check admin status
+  const user = db.getUserById(userId);
+  const isAdmin = user && (user.isAdmin || user.role === 'admin');
+
+  // Admins can view any job, regular users only their own
+  if (job.userId !== userId && !isAdmin) {
     return res.status(403).json({ error: 'Access denied' });
   }
 
@@ -750,23 +756,134 @@ app.use('/preview/:id', optionalAuth, async (req: AuthRequest, res, next) => {
     // Try to find the file
     let targetPath = path.join(previewDir, requestPath);
 
+    // Helper function to serve HTML with fixes for offline viewing
+    const serveHtmlWithFixes = (filePath: string) => {
+      try {
+        let html = fs.readFileSync(filePath, 'utf-8');
+
+        // Remove Content-Security-Policy meta tag that might block local resources
+        html = html.replace(/<meta[^>]*http-equiv="Content-Security-Policy"[^>]*>/gi, '');
+
+        // Fix Nuxt/Vue BASE_URL configuration that causes redirects to original domain
+        html = html.replace(/BASE_URL:"https?:\/\/[^"]+"/g, `BASE_URL:""`);
+        html = html.replace(/baseURL:"https?:\/\/[^"]+"/g, `baseURL:"/preview/${jobId}/"`);
+
+        // Remove canonical URLs that point to original domain
+        html = html.replace(/<link[^>]*rel="canonical"[^>]*href="https?:\/\/[^"]*"[^>]*>/gi, '');
+
+        // Remove og:url meta tags pointing to original domain
+        html = html.replace(/<meta[^>]*property="og:url"[^>]*content="https?:\/\/[^"]*"[^>]*>/gi, '');
+
+        // Add base tag to ensure relative URLs work correctly
+        const baseUrl = `/preview/${jobId}/`;
+        if (!html.includes('<base')) {
+          html = html.replace(/<head([^>]*)>/i, `<head$1><base href="${baseUrl}">`);
+        }
+
+        // Disable service worker registration that might interfere
+        html = html.replace(/navigator\.serviceWorker\.register/g, '(function(){})');
+
+        // Add early intercept script that runs before any other JS
+        const earlyInterceptScript = `
+          <script>
+            (function() {
+              // Block history API redirects to external domains
+              var origPushState = history.pushState;
+              var origReplaceState = history.replaceState;
+              history.pushState = function(s, t, url) {
+                if (url && String(url).match(/^https?:\\/\\//i) && !String(url).includes(location.host)) {
+                  console.log('[Clone] Blocked pushState to:', url);
+                  return;
+                }
+                return origPushState.apply(history, arguments);
+              };
+              history.replaceState = function(s, t, url) {
+                if (url && String(url).match(/^https?:\\/\\//i) && !String(url).includes(location.host)) {
+                  console.log('[Clone] Blocked replaceState to:', url);
+                  return;
+                }
+                return origReplaceState.apply(history, arguments);
+              };
+              // Block external fetch calls
+              var origFetch = window.fetch;
+              window.fetch = function(url) {
+                if (typeof url === 'string' && url.match(/^https?:\\/\\//i) && !url.includes(location.host) && !url.includes('localhost')) {
+                  console.log('[Clone] Blocked fetch to:', url);
+                  return Promise.resolve(new Response('{}', {status: 200}));
+                }
+                return origFetch.apply(window, arguments);
+              };
+            })();
+          </script>
+        `;
+        html = html.replace(/<head([^>]*)>/i, `<head$1>${earlyInterceptScript}`);
+
+        // Add click/form intercept script
+        const interceptScript = `
+          <script>
+            document.addEventListener('click', function(e) {
+              var link = e.target.closest('a');
+              if (link && link.href) {
+                try {
+                  var url = new URL(link.href, location.origin);
+                  if (url.hostname !== location.hostname && url.hostname !== 'localhost') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('[Clone] Blocked click to:', link.href);
+                    var local = link.getAttribute('href');
+                    if (local && !local.match(/^(https?:)?\\/\\//)) {
+                      location.href = local;
+                    }
+                    return false;
+                  }
+                } catch(err) {}
+              }
+            }, true);
+            document.addEventListener('submit', function(e) {
+              var form = e.target;
+              if (form && form.action) {
+                try {
+                  var url = new URL(form.action, location.origin);
+                  if (url.hostname !== location.hostname && url.hostname !== 'localhost') {
+                    e.preventDefault();
+                    console.log('[Clone] Blocked form to:', form.action);
+                    return false;
+                  }
+                } catch(err) {}
+              }
+            }, true);
+          </script>
+        `;
+        html = html.replace('</body>', interceptScript + '</body>');
+
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        return res.send(html);
+      } catch (err) {
+        return res.sendFile(filePath);
+      }
+    };
+
     // If requesting root or index.html, find it
     if (!requestPath || requestPath === 'index.html' || requestPath === '/') {
       const indexFile = findIndexHtml(previewDir);
       if (indexFile) {
-        return res.sendFile(indexFile);
+        return serveHtmlWithFixes(indexFile);
       }
     }
 
     // Check if file exists directly
     if (fs.existsSync(targetPath) && fs.statSync(targetPath).isFile()) {
+      // Serve HTML files with fixes
+      if (targetPath.endsWith('.html') || targetPath.endsWith('.htm')) {
+        return serveHtmlWithFixes(targetPath);
+      }
       return res.sendFile(targetPath);
     }
 
     // Try adding index.html for directory requests
     const indexInDir = path.join(targetPath, 'index.html');
     if (fs.existsSync(indexInDir)) {
-      return res.sendFile(indexInDir);
+      return serveHtmlWithFixes(indexInDir);
     }
 
     // List all available files for debugging
@@ -1785,6 +1902,11 @@ app.get('/api/consent', authenticateToken, (req: AuthRequest, res) => {
   const consents = consentService.getUserConsents(userId);
   res.json({ consents });
 });
+
+/**
+ * Serve cloned templates as static files
+ */
+app.use('/clones', express.static(path.join(__dirname, '../..')));
 
 /**
  * Serve frontend for all other routes

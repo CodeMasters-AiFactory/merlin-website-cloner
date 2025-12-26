@@ -30,7 +30,11 @@ export class JSVerification {
     });
 
     page.on('pageerror', (error) => {
-      errors.push(error.message);
+      if (error && error.message) {
+        errors.push(error.message);
+      } else if (error) {
+        errors.push(String(error));
+      }
     });
 
     // Wait for JavaScript to execute
