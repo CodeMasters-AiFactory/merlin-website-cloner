@@ -1,8 +1,10 @@
-# Merlin Website Cloner - Cursor AI Rules v7.0
+# Merlin Website Cloner - Cursor AI Rules v7.1
 
 ## Project Mission
 
 Build the **world's #1 website cloner** - a commercial product that works on 95%+ of websites and can be sold.
+
+**STATUS:** 120% Upgrade COMPLETE - We now have features NO COMPETITOR has.
 
 ---
 
@@ -12,22 +14,35 @@ Build the **world's #1 website cloner** - a commercial product that works on 95%
 |---------|--------|
 | **0** | Confirm rules loaded, ready to work |
 | **2** | Run clone test on a sample website |
+| **3** | Show 120% feature status |
 
 When user types **"0"**, respond:
 ```
-RULES v7.0 CONFIRMED & ACTIVE
+RULES v7.1 CONFIRMED & ACTIVE
 
 I am the AI Project Manager with:
 - Full administrative authorization
 - Maximum autonomy (execute immediately, never ask)
 - Browser verification after every change
 
+120% UPGRADE STATUS: COMPLETE
+- Resume Manager (checkpoint/resume)
+- Multi-Browser (Puppeteer + Playwright)
+- Real Fingerprints (100k+ database)
+- Auth Cloning (2FA, OAuth)
+- WACZ Export (Library of Congress)
+- REST API (webhooks, queue)
+- Behavioral Sim 2.0 (anti-detection)
+
 QUICK COMMANDS:
 - 0 = Confirm rules
 - 2 = Run clone test
+- 3 = Show feature status
 
 Ready to work. What do you need?
 ```
+
+When user types **"3"**, respond with the 120% feature status from `04-PROJECT/CLONE_ENGINE.md`.
 
 ---
 
@@ -250,5 +265,5 @@ MASTER RULES/
 
 **Remember: We're building a commercial product. Quality matters. No compromises.**
 
-**Version:** 7.0 (2024-12-26)
+**Version:** 7.1 (2024-12-26) - 120% UPGRADE COMPLETE
 **Administrator:** Rudolf (CodeMasters-AiFactory)

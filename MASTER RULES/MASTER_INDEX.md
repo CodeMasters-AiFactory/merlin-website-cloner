@@ -36,6 +36,7 @@ MASTER RULES/
 │   └── CHAT_HISTORY.md          ← How to save chats
 │
 ├── 04-PROJECT/                  ← Project-specific rules
+│   ├── CLONE_ENGINE.md          ← 120% Clone Engine features (NEW)
 │   ├── MERLIN_BUILDER.md        ← Merlin Website Wizard rules
 │   ├── GENERATION_PIPELINE.md   ← How websites are generated
 │   ├── INDUSTRY_DNA.md          ← How to add industries
@@ -90,11 +91,11 @@ MASTER RULES/
 | CORE | 3 | Identity, commands, stack |
 | AUTONOMOUS | 4 | How to work independently |
 | SESSION | 3 | Session management |
-| PROJECT | 4 | Project-specific rules |
+| PROJECT | 5 | Project-specific rules |
 | CODE | 4 | Coding standards |
 | ADMIN | 5 | System administration |
 | TESTING | 3 | Testing protocols |
-| **TOTAL** | **26** | Consolidated from 85+ files |
+| **TOTAL** | **27** | Consolidated from 85+ files |
 
 ---
 
