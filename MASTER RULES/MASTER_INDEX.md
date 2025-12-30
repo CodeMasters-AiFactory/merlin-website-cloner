@@ -50,6 +50,7 @@ MASTER RULES/
 │
 ├── 06-ADMIN/                    ← System administration
 │   ├── FULL_AUTHORITY.md        ← Your permissions
+│   ├── WINDOWS_CONTROL.md       ← Windows restart/shutdown autonomy (NEW)
 │   ├── SOFTWARE.md              ← Package management
 │   ├── SYSTEM.md                ← System configuration
 │   ├── DOCKER.md                ← Container management
@@ -93,9 +94,9 @@ MASTER RULES/
 | SESSION | 3 | Session management |
 | PROJECT | 5 | Project-specific rules |
 | CODE | 4 | Coding standards |
-| ADMIN | 5 | System administration |
+| ADMIN | 6 | System administration |
 | TESTING | 3 | Testing protocols |
-| **TOTAL** | **27** | Consolidated from 85+ files |
+| **TOTAL** | **28** | Consolidated from 85+ files |
 
 ---
 

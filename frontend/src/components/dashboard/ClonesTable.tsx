@@ -12,26 +12,45 @@ import {
   ChevronDown,
   ChevronUp,
   Search,
-  Filter,
-  MoreVertical,
+  PauseCircle,
+  PlayCircle,
+  StopCircle,
+  Activity,
+  ClipboardList,
 } from 'lucide-react'
 
 interface CloneJob {
   id: string
   url: string
-  status: 'pending' | 'processing' | 'completed' | 'failed'
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'paused'
   progress: number
   pagesCloned: number
   assetsCaptured: number
   createdAt: string
   completedAt?: string
+  pausedAt?: string
   outputDir?: string
   exportPath?: string
   errors?: string[]
+  currentUrl?: string
+  message?: string
+  logs?: Array<{
+    timestamp: string
+    level: 'info' | 'warning' | 'error' | 'success'
+    message: string
+    details?: string
+  }>
   verification?: {
     passed: boolean
     score: number
     summary: string
+    timestamp?: string
+    checks?: Array<{
+      name: string
+      category: string
+      passed: boolean
+      message: string
+    }>
   }
 }
 
@@ -44,6 +63,11 @@ interface ClonesTableProps {
   onPreview: (job: CloneJob) => void
   onViewLogs: (job: CloneJob) => void
   onDelete: (job: CloneJob) => void
+  onViewProgress?: (job: CloneJob) => void
+  onStop?: (job: CloneJob) => void
+  onPause?: (job: CloneJob) => void
+  onResume?: (job: CloneJob) => void
+  onViewReport?: (job: CloneJob) => void
 }
 
 function getStatusBadge(status: CloneJob['status']) {
@@ -52,6 +76,7 @@ function getStatusBadge(status: CloneJob['status']) {
     failed: { icon: XCircle, class: 'badge-error', label: 'Failed' },
     processing: { icon: Loader2, class: 'badge-info', label: 'Processing' },
     pending: { icon: Clock, class: 'badge-pending', label: 'Pending' },
+    paused: { icon: PauseCircle, class: 'badge-warning', label: 'Paused' },
   }
 
   const config = configs[status]
@@ -107,6 +132,11 @@ export function ClonesTable({
   onPreview,
   onViewLogs,
   onDelete,
+  onViewProgress,
+  onStop,
+  onPause,
+  onResume,
+  onViewReport,
 }: ClonesTableProps) {
   const [sortField, setSortField] = useState<SortField>('date')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
@@ -146,8 +176,8 @@ export function ClonesTable({
           comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
           break
         case 'status':
-          const statusOrder = { completed: 3, processing: 2, pending: 1, failed: 0 }
-          comparison = statusOrder[a.status] - statusOrder[b.status]
+          const statusOrder: Record<string, number> = { completed: 4, processing: 3, paused: 2, pending: 1, failed: 0 }
+          comparison = (statusOrder[a.status] || 0) - (statusOrder[b.status] || 0)
           break
         case 'success':
           comparison = getSuccessRate(a) - getSuccessRate(b)
@@ -232,6 +262,7 @@ export function ClonesTable({
               <option value="all">All Status</option>
               <option value="completed">Completed</option>
               <option value="processing">Processing</option>
+              <option value="paused">Paused</option>
               <option value="pending">Pending</option>
               <option value="failed">Failed</option>
             </select>
@@ -280,35 +311,60 @@ export function ClonesTable({
           {/* Table Body */}
           <div className="divide-y divide-dark-800">
             {sortedJobs.map((job, index) => {
-              const hostname = new URL(job.url).hostname
+              const hostname = (() => {
+                try {
+                  return new URL(job.url).hostname
+                } catch {
+                  return job.url
+                }
+              })()
               const successRate = getSuccessRate(job)
+
+              // Determine row click behavior
+              const handleRowClick = () => {
+                if (job.status === 'completed') {
+                  onPreview(job)
+                } else if ((job.status === 'processing' || job.status === 'paused') && onViewProgress) {
+                  onViewProgress(job)
+                }
+              }
+
+              const isClickable = job.status === 'completed' || job.status === 'processing' || job.status === 'paused'
 
               return (
                 <div
                   key={job.id}
-                  className="lg:grid lg:grid-cols-12 gap-4 p-4 lg:px-6 hover:bg-dark-800/30 transition-colors duration-150 animate-fade-in"
+                  className={`lg:grid lg:grid-cols-12 gap-4 p-4 lg:px-6 hover:bg-dark-800/30 transition-colors duration-150 animate-fade-in ${isClickable ? 'cursor-pointer' : ''}`}
                   style={{ animationDelay: `${index * 50}ms` }}
+                  onClick={(e) => {
+                    // Only trigger row click if not clicking a button
+                    if ((e.target as HTMLElement).closest('button, a')) return
+                    handleRowClick()
+                  }}
                 >
                   {/* Website */}
                   <div className="col-span-4 flex items-center gap-3 mb-3 lg:mb-0">
-                    <div className="w-10 h-10 rounded-lg bg-dark-700 flex items-center justify-center flex-shrink-0">
-                      <span className="text-sm font-bold text-primary-400">
-                        {hostname.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <div className="min-w-0">
-                      {job.status === 'completed' ? (
-                        <button
-                          onClick={() => onPreview(job)}
-                          className="text-sm font-medium text-primary-400 hover:text-primary-300 hover:underline truncate block max-w-full text-left"
-                        >
-                          {hostname}
-                        </button>
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                      job.status === 'processing' ? 'bg-primary-500/20' :
+                      job.status === 'paused' ? 'bg-gold-500/20' :
+                      'bg-dark-700'
+                    }`}>
+                      {job.status === 'processing' ? (
+                        <Loader2 className="w-5 h-5 text-primary-400 animate-spin" />
+                      ) : job.status === 'paused' ? (
+                        <PauseCircle className="w-5 h-5 text-gold-400" />
                       ) : (
-                        <span className="text-sm font-medium text-dark-200 truncate block">
-                          {hostname}
+                        <span className="text-sm font-bold text-primary-400">
+                          {hostname.charAt(0).toUpperCase()}
                         </span>
                       )}
+                    </div>
+                    <div className="min-w-0">
+                      <span className={`text-sm font-medium truncate block ${
+                        isClickable ? 'text-primary-400' : 'text-dark-200'
+                      }`}>
+                        {hostname}
+                      </span>
                       <span className="text-xs text-dark-500">
                         {formatRelativeTime(job.createdAt)}
                       </span>
@@ -343,21 +399,34 @@ export function ClonesTable({
 
                   {/* Actions */}
                   <div className="col-span-2 flex items-center justify-end gap-1">
+                    {/* Completed job actions */}
                     {job.status === 'completed' && (
                       <>
                         <button
                           onClick={() => onPreview(job)}
-                          className="p-2 rounded-lg text-dark-400 hover:text-primary-400 hover:bg-primary-500/10 transition-colors"
-                          title="Preview"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-600 hover:bg-primary-500 text-white text-xs font-medium transition-colors"
+                          title="View Template"
                         >
-                          <Eye className="w-4 h-4" />
+                          <Eye className="w-3.5 h-3.5" />
+                          View
                         </button>
+                        {onViewReport && job.verification && (
+                          <button
+                            type="button"
+                            onClick={() => onViewReport(job)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-dark-700 hover:bg-dark-600 text-dark-200 text-xs font-medium transition-colors"
+                            title="View Detailed Report"
+                          >
+                            <ClipboardList className="w-3.5 h-3.5" />
+                            Report
+                          </button>
+                        )}
                         <a
-                          href={`/preview/${job.id}/index.html`}
+                          href={job.url}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="p-2 rounded-lg text-dark-400 hover:text-dark-200 hover:bg-dark-700 transition-colors"
-                          title="Open in new tab"
+                          title="Visit Original Website"
                         >
                           <ExternalLink className="w-4 h-4" />
                         </a>
@@ -373,6 +442,74 @@ export function ClonesTable({
                         )}
                       </>
                     )}
+
+                    {/* Processing job actions */}
+                    {job.status === 'processing' && (
+                      <>
+                        {onViewProgress && (
+                          <button
+                            onClick={() => onViewProgress(job)}
+                            className="p-2 rounded-lg text-dark-400 hover:text-primary-400 hover:bg-primary-500/10 transition-colors"
+                            title="View Progress"
+                          >
+                            <Activity className="w-4 h-4" />
+                          </button>
+                        )}
+                        {onPause && (
+                          <button
+                            onClick={() => onPause(job)}
+                            className="p-2 rounded-lg text-dark-400 hover:text-gold-400 hover:bg-gold-500/10 transition-colors"
+                            title="Pause"
+                          >
+                            <PauseCircle className="w-4 h-4" />
+                          </button>
+                        )}
+                        {onStop && (
+                          <button
+                            onClick={() => onStop(job)}
+                            className="p-2 rounded-lg text-dark-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                            title="Stop"
+                          >
+                            <StopCircle className="w-4 h-4" />
+                          </button>
+                        )}
+                      </>
+                    )}
+
+                    {/* Paused job actions */}
+                    {job.status === 'paused' && (
+                      <>
+                        {onViewProgress && (
+                          <button
+                            onClick={() => onViewProgress(job)}
+                            className="p-2 rounded-lg text-dark-400 hover:text-primary-400 hover:bg-primary-500/10 transition-colors"
+                            title="View Progress"
+                          >
+                            <Activity className="w-4 h-4" />
+                          </button>
+                        )}
+                        {onResume && (
+                          <button
+                            onClick={() => onResume(job)}
+                            className="p-2 rounded-lg text-dark-400 hover:text-green-400 hover:bg-green-500/10 transition-colors"
+                            title="Resume"
+                          >
+                            <PlayCircle className="w-4 h-4" />
+                          </button>
+                        )}
+                        {onStop && (
+                          <button
+                            onClick={() => onStop(job)}
+                            className="p-2 rounded-lg text-dark-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                            title="Stop"
+                          >
+                            <StopCircle className="w-4 h-4" />
+                          </button>
+                        )}
+                      </>
+                    )}
+
+                    {/* Common actions */}
                     <button
                       onClick={() => onViewLogs(job)}
                       className="p-2 rounded-lg text-dark-400 hover:text-dark-200 hover:bg-dark-700 transition-colors"
@@ -380,13 +517,15 @@ export function ClonesTable({
                     >
                       <FileText className="w-4 h-4" />
                     </button>
-                    <button
-                      onClick={() => onDelete(job)}
-                      className="p-2 rounded-lg text-dark-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {job.status !== 'processing' && (
+                      <button
+                        onClick={() => onDelete(job)}
+                        className="p-2 rounded-lg text-dark-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 </div>
               )

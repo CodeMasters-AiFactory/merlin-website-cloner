@@ -198,7 +198,7 @@ cat benchmark-reports/quick-benchmark-2025-12-19.md
 ### Environment:
 - **Node Version:** v20+ (via tsx)
 - **Platform:** Windows (win64)
-- **Working Directory:** `c:\Cursor Projects\Merlin website clone`
+- **Working Directory:** `c:\Cursor Projects\Mirror Site`
 
 ---
 

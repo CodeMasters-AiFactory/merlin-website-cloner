@@ -42,6 +42,58 @@ export class AssetCapture {
   private capturedAssets: Map<string, Asset> = new Map();
   private downloadQueue: Array<{ url: string; priority: number; type: string }> = [];
   private downloading: Set<string> = new Set();
+  private maxRetries = 3;
+  private retryDelayMs = 1000;
+
+  /**
+   * Fetches with retry logic and exponential backoff
+   */
+  private async fetchWithRetry(
+    url: string,
+    maxRetries: number = this.maxRetries
+  ): Promise<{ buffer: Buffer; headers: Record<string, string> } | null> {
+    let lastError: Error | null = null;
+
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        const response = await fetch(url, {
+          timeout: 30000, // 30 second timeout per attempt
+        });
+
+        if (!response.ok) {
+          // Don't retry 4xx errors (client errors)
+          if (response.status >= 400 && response.status < 500) {
+            return null;
+          }
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const headers: Record<string, string> = {};
+        response.headers.forEach((value, key) => {
+          headers[key] = value;
+        });
+
+        return { buffer, headers };
+      } catch (error) {
+        lastError = error as Error;
+
+        // Don't retry if it's the last attempt
+        if (attempt < maxRetries - 1) {
+          // Exponential backoff: 1s, 2s, 4s
+          const delay = this.retryDelayMs * Math.pow(2, attempt);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+
+    // All retries failed
+    if (lastError) {
+      console.warn(`Failed to download ${url} after ${maxRetries} attempts: ${lastError.message}`);
+    }
+    return null;
+  }
 
   /**
    * Captures all assets from a page
@@ -797,6 +849,40 @@ export class AssetCapture {
         return null;
       }
 
+      // Skip URLs that look like page links (not assets)
+      // These are same-domain URLs without recognizable file extensions
+      try {
+        const urlObj = new URL(absoluteUrl);
+        const baseUrlObj = new URL(options.baseUrl);
+        const pathname = urlObj.pathname;
+
+        // SKIP LARGE BINARY FILES - These are unnecessary for website cloning
+        // Skip installer files, archives, and application-specific files
+        const skipBinaryExtensions = /\.(zxp|zip|rar|7z|tar|gz|bz2|exe|msi|dmg|pkg|deb|rpm|app|apk|ipa|iso)$/i;
+        if (skipBinaryExtensions.test(pathname)) {
+          this.downloading.delete(url);
+          return null;
+        }
+
+        // Skip if same domain and pathname has no file extension (likely a page link)
+        // Common asset extensions that we DO want to download
+        const assetExtensions = /\.(js|css|png|jpg|jpeg|gif|webp|svg|ico|woff|woff2|ttf|otf|eot|mp4|webm|ogg|mp3|wav|pdf|json|xml)$/i;
+
+        if (urlObj.host === baseUrlObj.host) {
+          // If the URL ends with / or has no extension, it's likely a page link
+          if (pathname === '/' || pathname.endsWith('/') || !assetExtensions.test(pathname)) {
+            // Check if it looks like a page link (no file extension or only has slashes)
+            const hasNoExtension = !pathname.includes('.') || pathname.endsWith('/');
+            if (hasNoExtension) {
+              this.downloading.delete(url);
+              return null;
+            }
+          }
+        }
+      } catch {
+        // URL parsing failed, continue with download attempt
+      }
+
       // Check CDN cache first if CDN optimizer is available
       let buffer: Buffer | null = null;
       let headers: Record<string, string> = {};
@@ -812,21 +898,16 @@ export class AssetCapture {
         }
       }
       
-      // If not cached, fetch
+      // If not cached, fetch with retry logic
       if (!buffer) {
-        const response = await fetch(absoluteUrl);
-        if (!response.ok) {
+        const result = await this.fetchWithRetry(absoluteUrl);
+        if (!result) {
           this.downloading.delete(url);
           return null;
         }
 
-        const arrayBuffer = await response.arrayBuffer();
-        buffer = Buffer.from(arrayBuffer);
-        
-        // Store headers
-        response.headers.forEach((value, key) => {
-          headers[key] = value;
-        });
+        buffer = result.buffer;
+        headers = result.headers;
         
         // Cache CDN asset if CDN optimizer is available
         if ((options as any).cdnOptimizer) {
@@ -842,7 +923,19 @@ export class AssetCapture {
       }
       
       const contentType = headers['content-type'] || '';
-      const ext = this.getExtensionFromUrl(absoluteUrl) || this.getExtensionFromMimeType(contentType) || 'bin';
+      const extFromUrl = this.getExtensionFromUrl(absoluteUrl);
+      const extFromMime = this.getExtensionFromMimeType(contentType);
+
+      // If MIME type indicates this is HTML content (a page, not an asset), skip it
+      // extFromMime will be empty string for text/html
+      if (!extFromUrl && extFromMime === '') {
+        this.downloading.delete(url);
+        return null;
+      }
+
+      // Use URL extension first, then MIME type, then fallback
+      // Only use 'bin' if we genuinely don't know the type but it's not HTML
+      const ext = extFromUrl || extFromMime || 'bin';
 
       const filename = this.createSafeFilename(absoluteUrl, ext);
       const localPath = path.join(assetDir, filename);
@@ -961,29 +1054,70 @@ export class AssetCapture {
    * Gets file extension from MIME type
    */
   private getExtensionFromMimeType(mimeType: string): string {
+    // Extract just the MIME type without parameters (e.g., "text/html; charset=utf-8" -> "text/html")
+    const cleanMimeType = mimeType.split(';')[0].trim().toLowerCase();
+
     const mimeMap: Record<string, string> = {
+      // Images
       'image/jpeg': 'jpg',
       'image/png': 'png',
       'image/gif': 'gif',
       'image/webp': 'webp',
       'image/svg+xml': 'svg',
+      'image/x-icon': 'ico',
+      'image/vnd.microsoft.icon': 'ico',
+      'image/avif': 'avif',
+      'image/bmp': 'bmp',
+      'image/tiff': 'tiff',
+
+      // Fonts
       'font/woff': 'woff',
       'font/woff2': 'woff2',
       'font/ttf': 'ttf',
       'font/otf': 'otf',
+      'application/font-woff': 'woff',
+      'application/font-woff2': 'woff2',
+      'application/x-font-woff': 'woff',
+      'application/x-font-ttf': 'ttf',
+      'application/x-font-opentype': 'otf',
+      'application/vnd.ms-fontobject': 'eot',
+
+      // Video
       'video/mp4': 'mp4',
       'video/webm': 'webm',
+      'video/ogg': 'ogg',
+      'video/quicktime': 'mov',
+
+      // Audio
       'audio/mpeg': 'mp3',
       'audio/wav': 'wav',
+      'audio/ogg': 'ogg',
+      'audio/webm': 'weba',
+
+      // Documents
       'application/pdf': 'pdf',
+
+      // Web assets
       'text/css': 'css',
       'text/javascript': 'js',
       'application/javascript': 'js',
       'application/x-javascript': 'js',
-      'text/x-javascript': 'js'
+      'text/x-javascript': 'js',
+      'application/ecmascript': 'js',
+
+      // Data
+      'application/json': 'json',
+      'application/xml': 'xml',
+      'text/xml': 'xml',
+      'application/x-www-form-urlencoded': 'txt',
+
+      // Text/HTML should NOT be treated as downloadable assets
+      // Return empty to signal this is a page, not an asset
+      'text/html': '',
+      'application/xhtml+xml': '',
     };
 
-    return mimeMap[mimeType] || 'bin';
+    return mimeMap[cleanMimeType] || '';
   }
 
   /**

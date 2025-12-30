@@ -9,10 +9,27 @@ import archiver from 'archiver';
 import { createReadStream, createWriteStream } from 'fs';
 
 export interface ExportOptions {
-  format: 'zip' | 'tar' | 'mhtml' | 'static' | 'warc';
+  format: 'zip' | 'tar' | 'mhtml' | 'static' | 'warc' | 'pdf';
   outputPath: string;
   compressionLevel?: number;
   includeServerFiles?: boolean;
+  pdfOptions?: PDFExportOptions;
+}
+
+export interface PDFExportOptions {
+  format?: 'A4' | 'Letter' | 'Legal' | 'Tabloid';
+  landscape?: boolean;
+  printBackground?: boolean;
+  margin?: {
+    top?: string;
+    right?: string;
+    bottom?: string;
+    left?: string;
+  };
+  scale?: number;
+  displayHeaderFooter?: boolean;
+  headerTemplate?: string;
+  footerTemplate?: string;
 }
 
 export class ExportFormats {
@@ -285,6 +302,127 @@ ${base64Content}
   }
 
   /**
+   * Exports to PDF (renders all pages as PDF documents)
+   */
+  async exportToPDF(
+    sourceDir: string,
+    options: ExportOptions
+  ): Promise<string> {
+    const puppeteer = await import('puppeteer');
+    const outputDir = options.outputPath.endsWith('.pdf')
+      ? path.dirname(options.outputPath)
+      : options.outputPath;
+
+    await fs.mkdir(outputDir, { recursive: true });
+
+    // Find all HTML files
+    const htmlFiles = await this.findHTMLFiles(sourceDir);
+
+    if (htmlFiles.length === 0) {
+      throw new Error('No HTML files found to convert to PDF');
+    }
+
+    const browser = await puppeteer.default.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+
+    const pdfPaths: string[] = [];
+    const pdfOptions = options.pdfOptions || {};
+
+    try {
+      for (const htmlFile of htmlFiles) {
+        const relativePath = path.relative(sourceDir, htmlFile);
+        const pdfFileName = relativePath.replace(/\.html?$/i, '.pdf');
+        const pdfPath = path.join(outputDir, pdfFileName);
+
+        // Ensure directory exists for nested files
+        await fs.mkdir(path.dirname(pdfPath), { recursive: true });
+
+        const page = await browser.newPage();
+
+        // Load the HTML file
+        const fileUrl = `file://${htmlFile.replace(/\\/g, '/')}`;
+        await page.goto(fileUrl, { waitUntil: 'networkidle0', timeout: 30000 });
+
+        // Generate PDF
+        await page.pdf({
+          path: pdfPath,
+          format: pdfOptions.format || 'A4',
+          landscape: pdfOptions.landscape || false,
+          printBackground: pdfOptions.printBackground !== false,
+          margin: pdfOptions.margin || {
+            top: '20mm',
+            right: '20mm',
+            bottom: '20mm',
+            left: '20mm'
+          },
+          scale: pdfOptions.scale || 1,
+          displayHeaderFooter: pdfOptions.displayHeaderFooter || false,
+          headerTemplate: pdfOptions.headerTemplate || '',
+          footerTemplate: pdfOptions.footerTemplate || ''
+        });
+
+        await page.close();
+        pdfPaths.push(pdfPath);
+      }
+
+      // Create index JSON listing all PDFs
+      const indexPath = path.join(outputDir, 'pdf-index.json');
+      await fs.writeFile(indexPath, JSON.stringify({
+        exportedAt: new Date().toISOString(),
+        sourceDirectory: sourceDir,
+        totalPages: pdfPaths.length,
+        files: pdfPaths.map(p => path.relative(outputDir, p))
+      }, null, 2));
+
+    } finally {
+      await browser.close();
+    }
+
+    // If single file requested, merge PDFs
+    if (options.outputPath.endsWith('.pdf') && pdfPaths.length > 0) {
+      // Return the first PDF if only one, otherwise return directory
+      if (pdfPaths.length === 1) {
+        const singlePdfPath = options.outputPath;
+        await fs.copyFile(pdfPaths[0], singlePdfPath);
+        return singlePdfPath;
+      }
+    }
+
+    return outputDir;
+  }
+
+  /**
+   * Finds all HTML files in directory
+   */
+  private async findHTMLFiles(dir: string): Promise<string[]> {
+    const htmlFiles: string[] = [];
+
+    try {
+      const entries = await fs.readdir(dir, { withFileTypes: true });
+
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+
+        if (entry.isDirectory()) {
+          // Skip assets directory for PDF export
+          if (entry.name !== 'assets') {
+            const subFiles = await this.findHTMLFiles(fullPath);
+            htmlFiles.push(...subFiles);
+          }
+        } else if (entry.isFile() && /\.html?$/i.test(entry.name)) {
+          htmlFiles.push(fullPath);
+        }
+      }
+    } catch (error) {
+      // Directory doesn't exist or can't be read
+    }
+
+    return htmlFiles;
+  }
+
+  /**
    * Main export method
    */
   async export(
@@ -300,6 +438,8 @@ ${base64Content}
         return await this.exportToMHTML(sourceDir, options);
       case 'static':
         return await this.exportToStatic(sourceDir, options);
+      case 'pdf':
+        return await this.exportToPDF(sourceDir, options);
       default:
         throw new Error(`Unsupported export format: ${options.format}`);
     }

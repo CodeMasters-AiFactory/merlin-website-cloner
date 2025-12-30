@@ -8,13 +8,28 @@ import { Request, Response, NextFunction } from 'express';
 import jwt, { SignOptions } from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 
-// JWT Configuration - MUST be set in environment
-const JWT_SECRET = process.env.JWT_SECRET || (() => {
-  console.error('⚠️  WARNING: JWT_SECRET not set! Using fallback (NOT SAFE FOR PRODUCTION)');
-  return 'CHANGE_THIS_IN_PRODUCTION_' + Math.random().toString(36);
+// JWT Configuration - SECURITY CRITICAL
+// In production, JWT_SECRET MUST be set via environment variable
+const JWT_SECRET = (() => {
+  const secret = process.env.JWT_SECRET;
+  const isDev = process.env.NODE_ENV !== 'production';
+
+  if (!secret && !isDev) {
+    console.error('CRITICAL: JWT_SECRET environment variable is required in production!');
+    console.error('Generate one with: node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"');
+    process.exit(1);
+  }
+
+  // Only allow default in development
+  if (!secret && isDev) {
+    console.warn('⚠️  Using default JWT secret - DO NOT USE IN PRODUCTION');
+    return 'merlin-clone-dev-secret-777-do-not-use-in-production';
+  }
+
+  return secret!;
 })();
 
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+const JWT_EXPIRES_IN: string = process.env.JWT_EXPIRES_IN || '7d';
 const BCRYPT_ROUNDS = 12; // Industry standard, good balance of security/speed
 
 export interface JwtPayload {
@@ -32,16 +47,6 @@ export interface AuthRequest extends Request {
     email: string;
     name: string;
   };
-  body: any;
-  params: any;
-  query: any;
-  headers: any;
-  protocol: string;
-  ip?: string;
-  socket: any;
-  get: (name: string) => string | undefined;
-  on: (event: string, callback: (...args: any[]) => void) => void;
-  url: string;
 }
 
 /**
@@ -55,7 +60,7 @@ export function generateToken(user: { id: string; email: string; name: string })
   };
   
   const options: SignOptions = {
-    expiresIn: JWT_EXPIRES_IN,
+    expiresIn: JWT_EXPIRES_IN as jwt.SignOptions['expiresIn'],
     algorithm: 'HS256'
   };
   

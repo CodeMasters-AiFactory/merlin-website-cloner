@@ -4,7 +4,7 @@
  */
 
 import type { Page } from 'puppeteer';
-import { CaptchaManager, type CaptchaTask } from './captchaManager.js';
+import { CaptchaManager, type CaptchaTask, type CaptchaSolution } from './captchaManager.js';
 
 export interface CloudflareChallenge {
   type: 'javascript' | 'captcha' | 'turnstile' | 'unknown';
@@ -204,35 +204,44 @@ export class CloudflareBypass {
 
                 // ACTIVE SOLVING: Extract arithmetic operations
                 // Cloudflare typically uses: var a = {}; a.value = (complex math);
-                // We need to execute this and extract the result
+                // SECURITY: Use safe math evaluation instead of eval()
                 try {
-                  // Create isolated scope to evaluate challenge
-                  const isolatedEval = new Function('return (function() { ' +
-                    'var t = "' + window.location.hostname + '"; ' +
-                    challengeCode.replace(/setTimeout.*/, '') + // Remove setTimeout
-                    'return a.value || s.value || jschl_answer; ' +
-                    '})();'
-                  );
+                  // Safe math evaluator - only allows numbers and basic operators
+                  const safeMathEval = (expr: string): number | null => {
+                    // Remove all whitespace and validate characters
+                    const cleaned = expr.replace(/\s/g, '');
+                    // Only allow: digits, decimal points, +, -, *, /, (, )
+                    if (!/^[0-9+\-*/.()]+$/.test(cleaned)) {
+                      return null;
+                    }
+                    // Use Function with strict validation (safer than eval)
+                    try {
+                      const result = Function('"use strict"; return (' + cleaned + ')')();
+                      return typeof result === 'number' && isFinite(result) ? result : null;
+                    } catch {
+                      return null;
+                    }
+                  };
 
-                  answer = isolatedEval();
+                  // Extract the math expression from challenge
+                  const mathPatterns = [
+                    /a\.value\s*=\s*([0-9+\-*/.()]+)/,
+                    /s\.value\s*=\s*([0-9+\-*/.()]+)/,
+                    /jschl_answer\s*=\s*([0-9+\-*/.()]+)/,
+                  ];
 
-                  // Add hostname length (common Cloudflare trick)
-                  if (answer !== null && typeof answer === 'number') {
-                    answer = answer + window.location.hostname.length;
+                  for (const pattern of mathPatterns) {
+                    const match = challengeCode.match(pattern);
+                    if (match && match[1]) {
+                      const result = safeMathEval(match[1]);
+                      if (result !== null) {
+                        answer = result + window.location.hostname.length;
+                        break;
+                      }
+                    }
                   }
                 } catch (e) {
-                  console.log('Challenge execution attempt 1 failed:', e);
-
-                  // FALLBACK: Try simpler extraction
-                  try {
-                    // Look for direct numeric calculations
-                    const mathMatch = challengeCode.match(/=\s*([0-9+\-*/().\s]+);/);
-                    if (mathMatch) {
-                      answer = eval(mathMatch[1]) + window.location.hostname.length;
-                    }
-                  } catch (e2) {
-                    console.log('Challenge execution attempt 2 failed:', e2);
-                  }
+                  console.log('Safe math evaluation failed:', e);
                 }
 
                 break;
@@ -358,7 +367,7 @@ export class CloudflareBypass {
       };
 
       // Try to solve CAPTCHA using configured providers (CaptchaManager handles priority)
-      let solution = null;
+      let solution: CaptchaSolution | null = null;
 
       try {
         console.log('Attempting CAPTCHA solve with configured providers...');
@@ -448,7 +457,7 @@ export class CloudflareBypass {
       };
 
       // Try to solve Turnstile using configured providers (CaptchaManager handles priority)
-      let solution = null;
+      let solution: CaptchaSolution | null = null;
 
       try {
         console.log('Attempting Turnstile solve with configured providers...');

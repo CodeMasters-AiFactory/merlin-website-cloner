@@ -12,10 +12,12 @@ import Privacy from './pages/Privacy'
 import AcceptableUse from './pages/AcceptableUse'
 import ProxyNetwork from './pages/ProxyNetwork'
 import Templates from './pages/Templates'
+import DisasterRecovery from './pages/DisasterRecovery'
+import ArchiveBrowser from './pages/ArchiveBrowser'
 
-// Auto sign-in for development - set to true to auto-login as Test User
+// Auto sign-in for development - logs in as Rudolf (user 777)
 const DEV_AUTO_LOGIN = true
-const DEV_USER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NjYyMzAwNTgyMDQiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJuYW1lIjoiVGVzdCBVc2VyIiwiaWF0IjoxNzY2NTgzNjkxLCJleHAiOjE3NjcxODg0OTF9.9WhEwOo6FBj3ss03JIXMsS3upfplSHeuj8NvAVsxO2I'
+const DEV_USER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijc3NyIsImVtYWlsIjoiNzc3IiwibmFtZSI6IlJ1ZG9sZiIsImlhdCI6MTc2Njg0MjAyMSwiZXhwIjoxNzY3NDQ2ODIxfQ.DIZYOS0CIFHEtIwgwv4VKIYp9pWhpdJ_cfEsROwVwS4'
 
 function App() {
   useEffect(() => {
@@ -48,6 +50,8 @@ function App() {
         <Route path="/acceptable-use" element={<AcceptableUse />} />
         <Route path="/proxy-network" element={<ProxyNetwork />} />
         <Route path="/templates" element={<Templates />} />
+        <Route path="/disaster-recovery" element={<DisasterRecovery />} />
+        <Route path="/archives" element={<ArchiveBrowser />} />
       </Routes>
     </BrowserRouter>
   )

@@ -10,7 +10,9 @@ import { createStealthBrowser, applyStealthMeasures } from './stealthMode.js';
 import { TLSFingerprintMatcher } from './tlsFingerprinting.js';
 import { applyFingerprintEvasion, getFingerprintConfigForUserAgent } from './fingerprintEvasion.js';
 import { applyBehavioralPatterns } from './behavioralSimulation.js';
-import { ProxyManager, IPRoyalProvider } from './proxyManager.js';
+import { ProxyManager, IPRoyalProvider, type ProxyConfig } from './proxyManager.js';
+import { enhancedProxyNetwork } from './proxyNetworkEnhanced.js';
+import { getRandomFingerprint, getFingerprintForSite, getRequestHeaders, type TLSFingerprint } from './tlsFingerprints.js';
 import { UserAgentManager } from './userAgentManager.js';
 import { CloudflareBypass } from './cloudflareBypass.js';
 import { ParallelProcessor } from './parallelProcessor.js';
@@ -157,7 +159,85 @@ export class WebsiteCloner {
   private cleanupRegistered = false;
 
   // Asset URL mapping: maps original URL -> relative local path
+  // NOTE: This is recreated fresh for each clone job to prevent cross-contamination
+  // when multiple clones run concurrently
   private assetUrlMap: Map<string, string> = new Map();
+
+  // Enhanced stealth: Current TLS fingerprint for consistent browser identity
+  private currentFingerprint: TLSFingerprint | null = null;
+  private useEnhancedProxy: boolean = true; // Use our P2P network by default
+
+  // Documentation site patterns - these sites need longer timeouts (10 minutes)
+  private readonly DOCUMENTATION_SITE_PATTERNS = [
+    /docs\./i,
+    /documentation\./i,
+    /\.readthedocs\./i,
+    /developer\./i,
+    /devdocs\./i,
+    /api\./i,
+    /reference\./i,
+    /wiki\./i,
+    /\/docs\//i,
+    /\/documentation\//i,
+    /\/api\//i,
+    /\/reference\//i,
+    /\/manual\//i,
+    /\/guide\//i,
+    /\/tutorial\//i,
+  ];
+
+  // Known documentation site domains
+  private readonly DOCUMENTATION_DOMAINS = [
+    'docs.python.org',
+    'developer.mozilla.org',
+    'reactjs.org',
+    'vuejs.org',
+    'angular.io',
+    'nodejs.org',
+    'expressjs.com',
+    'tailwindcss.com',
+    'getbootstrap.com',
+    'webpack.js.org',
+    'nextjs.org',
+    'typescriptlang.org',
+    'docs.github.com',
+    'docs.microsoft.com',
+    'learn.microsoft.com',
+    'cloud.google.com',
+    'docs.aws.amazon.com',
+    'kubernetes.io',
+    'docker.com/docs',
+    'lit.dev',
+  ];
+
+  /**
+   * Checks if a URL is a documentation site that needs longer timeouts
+   */
+  private isDocumentationSite(url: string): boolean {
+    try {
+      const urlObj = new URL(url);
+      const fullUrl = urlObj.href.toLowerCase();
+      const hostname = urlObj.hostname.toLowerCase();
+
+      // Check against known documentation domains
+      for (const domain of this.DOCUMENTATION_DOMAINS) {
+        if (hostname === domain || hostname.endsWith('.' + domain)) {
+          return true;
+        }
+      }
+
+      // Check against URL patterns
+      for (const pattern of this.DOCUMENTATION_SITE_PATTERNS) {
+        if (pattern.test(fullUrl)) {
+          return true;
+        }
+      }
+
+      return false;
+    } catch {
+      return false;
+    }
+  }
 
   constructor() {
     // Initialize proxy providers from environment variables
@@ -168,7 +248,12 @@ export class WebsiteCloner {
 
     this.proxyManager = new ProxyManager(proxyProviders, 'success-based');
     this.userAgentManager = new UserAgentManager();
-    this.cloudflareBypass = new CloudflareBypass();
+    // Auto-load CAPTCHA solver API keys from environment
+    this.cloudflareBypass = new CloudflareBypass({
+      capsolverApiKey: process.env.CAPSOLVER_API_KEY,
+      captchaApiKey: process.env.TWOCAPTCHA_API_KEY,
+      anticaptchaApiKey: process.env.ANTICAPTCHA_API_KEY,
+    });
     this.parallelProcessor = new ParallelProcessor(10);
     this.assetCapture = new AssetCapture();
     this.spaDetector = new SPADetector();
@@ -283,8 +368,9 @@ export class WebsiteCloner {
    * Main clone method
    */
   async clone(options: CloneOptions): Promise<CloneResult> {
-    // Clear asset URL mapping from previous clone jobs
-    this.assetUrlMap.clear();
+    // Create a fresh Map for this clone job to prevent cross-contamination
+    // when multiple clones run concurrently (critical fix for parallel clones)
+    this.assetUrlMap = new Map();
 
     const result: CloneResult = {
       success: false,
@@ -321,13 +407,19 @@ export class WebsiteCloner {
         (options as any).waitForDynamic = true;
       }
 
-      // Apply learned maxPages - this is critical for broken link prevention
+      // Apply learned maxPages - but ONLY if user didn't explicitly set a limit
+      // User-specified limits should be respected (they may want a quick 5-page clone)
       if (analysis.recommendedSettings.maxPages) {
         const learnedMaxPages = analysis.recommendedSettings.maxPages as number;
-        const currentMaxPages = options.maxPages || 10;
-        if (learnedMaxPages > currentMaxPages) {
-          await this.logger.info(`[Learning] Increasing maxPages from ${currentMaxPages} to ${learnedMaxPages} based on past experience`);
+        const userExplicitlySetMaxPages = options.maxPages !== undefined && options.maxPages > 0;
+
+        if (!userExplicitlySetMaxPages) {
+          // User didn't specify, apply learned settings
           options.maxPages = learnedMaxPages;
+          await this.logger.info(`[Learning] Setting maxPages to ${learnedMaxPages} based on past experience`);
+        } else {
+          // User explicitly set a limit - respect it, just log that we're not overriding
+          await this.logger.info(`[Learning] User set maxPages=${options.maxPages}, not overriding with learned value ${learnedMaxPages}`);
         }
       }
 
@@ -386,7 +478,7 @@ export class WebsiteCloner {
     };
 
     // Variables for proxy tracking (defined outside try-catch)
-    let proxyConfig = null;
+    let proxyConfig: ProxyConfig | null = null;
     const cloneStartTime = Date.now();
 
     try {
@@ -405,27 +497,75 @@ export class WebsiteCloner {
         { organizeByType: true }
       );
 
-      // Load proxies from providers if proxy is enabled
+      // Load proxies - prefer our P2P network, fall back to third-party providers
       if (options.proxyConfig?.enabled) {
-        await this.logger.info('Loading proxies from providers...', { url: options.url });
-        await this.proxyManager.loadProxiesFromProviders();
-        const stats = this.proxyManager.getStats();
-        await this.logger.info(`Loaded ${stats.total} proxies (${stats.available} available)`, { url: options.url });
+        // Try enhanced P2P network first
+        if (this.useEnhancedProxy) {
+          const networkStats = enhancedProxyNetwork.getNetworkStats();
+          if (networkStats.onlineNodes > 0) {
+            await this.logger.info(`Using Merlin P2P network: ${networkStats.onlineNodes} proxies online`, { url: options.url });
+          } else {
+            // Fall back to third-party providers if P2P network is empty
+            await this.logger.info('P2P network empty, loading from providers...', { url: options.url });
+            await this.proxyManager.loadProxiesFromProviders();
+            const stats = this.proxyManager.getStats();
+            await this.logger.info(`Loaded ${stats.total} proxies (${stats.available} available)`, { url: options.url });
+          }
+        } else {
+          await this.proxyManager.loadProxiesFromProviders();
+          const stats = this.proxyManager.getStats();
+          await this.logger.info(`Loaded ${stats.total} proxies (${stats.available} available)`, { url: options.url });
+        }
       }
 
-      // Acquire browser from pool
-      const userAgent = this.userAgentManager.getNextUserAgent();
+      // Get TLS fingerprint for consistent browser identity
+      const domain = new URL(options.url).hostname;
+      this.currentFingerprint = getFingerprintForSite(domain);
+      await this.logger.info(`Using TLS fingerprint: ${this.currentFingerprint.id} (${this.currentFingerprint.browser} ${this.currentFingerprint.version})`, { url: options.url });
+
+      // Acquire browser from pool - use fingerprint's user agent for consistency
+      const userAgent = this.currentFingerprint
+        ? { userAgent: this.currentFingerprint.userAgent, language: this.currentFingerprint.acceptLanguage.split(',')[0] }
+        : this.userAgentManager.getNextUserAgent();
       const tlsConfig = TLSFingerprintMatcher.getTLSConfig(userAgent.userAgent);
 
-      // Get proxy if available (for Cloudflare bypass and anti-bot)
-      proxyConfig = this.proxyManager.getNextProxy(options.url);
-      if (proxyConfig) {
-        await this.logger.info('Using proxy for this request', {
-          url: options.url,
-          proxy: `${proxyConfig.host}:${proxyConfig.port}`,
-          type: proxyConfig.type,
-          country: proxyConfig.country
+      // Get proxy - prefer enhanced P2P network
+      if (this.useEnhancedProxy && options.proxyConfig?.enabled) {
+        const enhancedProxy = await enhancedProxyNetwork.getProxy({
+          targetUrl: options.url,
+          preferResidential: true,
+          minSuccessRate: 0.8,
         });
+        if (enhancedProxy) {
+          proxyConfig = {
+            host: enhancedProxy.host,
+            port: enhancedProxy.port,
+            type: enhancedProxy.type,
+            country: enhancedProxy.countryCode,
+            provider: 'Merlin P2P',
+            isHealthy: enhancedProxy.isOnline,
+          };
+          await this.logger.info('Using Merlin P2P proxy', {
+            url: options.url,
+            proxy: `${proxyConfig.host}:${proxyConfig.port}`,
+            type: proxyConfig.type,
+            country: proxyConfig.country,
+            asn: enhancedProxy.asn,
+          });
+        }
+      }
+
+      // Fall back to third-party proxy if P2P not available
+      if (!proxyConfig && options.proxyConfig?.enabled) {
+        proxyConfig = this.proxyManager.getNextProxy(options.url);
+        if (proxyConfig) {
+          await this.logger.info('Using third-party proxy', {
+            url: options.url,
+            proxy: `${proxyConfig.host}:${proxyConfig.port}`,
+            type: proxyConfig.type,
+            country: proxyConfig.country
+          });
+        }
       }
 
       await this.logger.info('Acquiring browser from pool...', { url: options.url });
@@ -800,7 +940,11 @@ export class WebsiteCloner {
           });
 
           try {
-            const verificationResult = await verifyClone(baseDir, options.url);
+            // Pass scope options so limited clones aren't penalized for out-of-scope links
+            const verificationResult = await verifyClone(baseDir, options.url, {
+              maxPages: options.maxPages,
+              maxDepth: options.maxDepth
+            });
             result.verificationResult = verificationResult;
             await this.logger.info('Clone verification completed', {
               url: options.url,
@@ -1078,7 +1222,10 @@ export class WebsiteCloner {
           for (const match of matches) {
             const link = match[1];
             try {
-              const absoluteUrl = new URL(link, url).href;
+              const urlObj = new URL(link, url);
+              // CRITICAL FIX: Strip anchor fragments to prevent duplicate page crawling
+              urlObj.hash = '';
+              const absoluteUrl = urlObj.href;
               if (!visited.has(absoluteUrl) && this.isSameDomain(absoluteUrl, url)) {
                 discoveredLinks.push(absoluteUrl);
               }
@@ -1162,7 +1309,14 @@ export class WebsiteCloner {
 
       // Navigate with fallback strategies
           // Use learned timeout or default
-          const pageTimeout = (options as any).pageTimeout || options.timeout || 60000;
+          // Documentation sites need longer timeouts (10 minutes instead of 1 minute)
+          const isDocSite = this.isDocumentationSite(url);
+          const defaultTimeout = isDocSite ? 600000 : 60000; // 10 min for docs, 1 min for others
+          const pageTimeout = (options as any).pageTimeout || options.timeout || defaultTimeout;
+
+          if (isDocSite) {
+            await this.logger.info(`[DocSite] Using extended timeout (${pageTimeout / 1000}s) for documentation site`, { url });
+          }
 
           // Retry navigation with exponential backoff
           const navigationResult = await this.retryManager.retry(
@@ -1533,7 +1687,11 @@ ${computedResult.injectableCSS}
             continue;
           }
           try {
-            const absoluteUrl = new URL(link, url).href;
+            const urlObj = new URL(link, url);
+            // CRITICAL FIX: Strip anchor fragments to prevent duplicate page crawling
+            // URLs like /docs#section1 and /docs#section2 are the SAME page
+            urlObj.hash = '';
+            const absoluteUrl = urlObj.href;
             if (!visited.has(absoluteUrl) && this.isSameDomain(absoluteUrl, url)) {
               discoveredLinks.push(absoluteUrl);
             }

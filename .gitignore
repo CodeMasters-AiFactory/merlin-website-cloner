@@ -59,6 +59,23 @@ stress-test-results/
 
 # Data files (keep structure, ignore content)
 data/*.json
+data/*.db
 !data/.gitkeep
 
 /src/generated/prisma
+
+# Test result files
+*-test-results-*.json
+benchmark-*.json
+dr-test-*.json
+security-test-*.json
+warc-test-*.json
+test-results-*.json
+
+# Temp files
+temp_jobs.json
+improvement-log.json
+merlin-learning.json
+
+# Test clones directory
+test-clones/

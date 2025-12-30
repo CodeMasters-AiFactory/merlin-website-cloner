@@ -67,43 +67,36 @@ function StatCard({
   const animatedValue = useCountUp(loading ? 0 : value)
 
   const colorClasses = {
-    purple: 'text-primary-400 bg-primary-500/10',
-    green: 'text-green-400 bg-green-500/10',
-    gold: 'text-gold-400 bg-gold-500/10',
-    blue: 'text-blue-400 bg-blue-500/10',
-  }
-
-  const glowClasses = {
-    purple: 'group-hover:shadow-glow-sm',
-    green: 'group-hover:shadow-[0_0_20px_rgba(34,197,94,0.3)]',
-    gold: 'group-hover:shadow-glow-gold',
-    blue: 'group-hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]',
+    purple: 'text-violet-600 bg-violet-50',
+    green: 'text-emerald-600 bg-emerald-50',
+    gold: 'text-amber-600 bg-amber-50',
+    blue: 'text-blue-600 bg-blue-50',
   }
 
   if (loading) {
     return (
-      <div className="card-glass p-6">
+      <div className="bg-white rounded-2xl border border-gray-200 p-6">
         <div className="flex items-start justify-between">
-          <div className="skeleton-shimmer w-12 h-12 rounded-xl" />
-          <div className="skeleton-shimmer w-16 h-6 rounded" />
+          <div className="w-12 h-12 rounded-xl bg-gray-100 animate-pulse" />
+          <div className="w-16 h-6 rounded bg-gray-100 animate-pulse" />
         </div>
         <div className="mt-4">
-          <div className="skeleton-shimmer w-20 h-8 rounded mb-2" />
-          <div className="skeleton-shimmer w-24 h-4 rounded" />
+          <div className="w-20 h-8 rounded bg-gray-100 animate-pulse mb-2" />
+          <div className="w-24 h-4 rounded bg-gray-100 animate-pulse" />
         </div>
       </div>
     )
   }
 
   return (
-    <div className={`card-glass p-6 group cursor-default transition-all duration-300 ${glowClasses[color]}`}>
+    <div className="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-lg hover:border-gray-300 transition-all duration-300 group">
       <div className="flex items-start justify-between">
         <div className={`p-3 rounded-xl ${colorClasses[color]}`}>
           <Icon className="w-6 h-6" />
         </div>
         {trend && trendValue && (
           <div className={`flex items-center gap-1 text-sm font-medium ${
-            trend === 'up' ? 'text-green-400' : trend === 'down' ? 'text-red-400' : 'text-dark-500'
+            trend === 'up' ? 'text-green-600' : trend === 'down' ? 'text-red-500' : 'text-gray-400'
           }`}>
             {trend === 'up' && <TrendingUp className="w-4 h-4" />}
             {trend === 'down' && <TrendingDown className="w-4 h-4" />}
@@ -112,10 +105,10 @@ function StatCard({
         )}
       </div>
       <div className="mt-4">
-        <div className="stat-value animate-count-up">
+        <div className="text-3xl font-bold text-gray-900">
           {animatedValue.toLocaleString()}
         </div>
-        <div className="stat-label mt-1">{label}</div>
+        <div className="text-sm text-gray-500 mt-1">{label}</div>
       </div>
     </div>
   )

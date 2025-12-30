@@ -12,7 +12,6 @@ import {
   ChevronDown,
   Command,
   Menu,
-  X,
 } from 'lucide-react'
 import { useTheme } from '../../hooks/useTheme'
 
@@ -74,14 +73,16 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
   }, [])
 
   return (
-    <header className="h-16 bg-dark-900/80 backdrop-blur-md border-b border-dark-800 sticky top-0 z-30">
+    <header className="h-16 bg-white border-b border-gray-200 sticky top-0 z-30">
       <div className="h-full px-4 lg:px-6 flex items-center justify-between gap-4">
         {/* Left: Mobile menu + Search */}
         <div className="flex items-center gap-4 flex-1">
           {showMenuButton && (
             <button
+              type="button"
               onClick={onMenuClick}
-              className="lg:hidden p-2 rounded-lg text-dark-400 hover:text-dark-100 hover:bg-dark-800 transition-colors"
+              className="lg:hidden p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+              aria-label="Open menu"
             >
               <Menu className="w-5 h-5" />
             </button>
@@ -90,27 +91,27 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
           {/* Search Bar */}
           <div className="relative flex-1 max-w-md">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className={`w-4 h-4 ${searchFocused ? 'text-primary-400' : 'text-dark-500'}`} />
+              <Search className={`w-4 h-4 ${searchFocused ? 'text-violet-500' : 'text-gray-400'}`} />
             </div>
             <input
               id="global-search"
               type="text"
               placeholder="Search clones..."
               className={`
-                w-full pl-10 pr-12 py-2 rounded-lg
-                bg-dark-800/50 border
-                text-dark-100 placeholder-dark-500
+                w-full pl-10 pr-12 py-2 rounded-xl
+                bg-gray-50 border
+                text-gray-900 placeholder-gray-400
                 text-sm transition-all duration-200
                 ${searchFocused
-                  ? 'border-primary-500 ring-2 ring-primary-500/20'
-                  : 'border-dark-700 hover:border-dark-600'
+                  ? 'border-violet-500 ring-2 ring-violet-500/20 bg-white'
+                  : 'border-gray-200 hover:border-gray-300'
                 }
               `}
               onFocus={() => setSearchFocused(true)}
               onBlur={() => setSearchFocused(false)}
             />
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-              <kbd className="hidden sm:flex items-center gap-1 px-1.5 py-0.5 text-xs text-dark-500 bg-dark-700 rounded">
+              <kbd className="hidden sm:flex items-center gap-1 px-1.5 py-0.5 text-xs text-gray-400 bg-gray-100 rounded border border-gray-200">
                 <Command className="w-3 h-3" />K
               </kbd>
             </div>
@@ -122,7 +123,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-lg text-dark-400 hover:text-dark-100 hover:bg-dark-800 transition-all duration-200"
+            className="p-2 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-all duration-200"
             title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -136,41 +137,41 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                 setShowNotifications(!showNotifications)
                 setShowUserMenu(false)
               }}
-              className="p-2 rounded-lg text-dark-400 hover:text-dark-100 hover:bg-dark-800 transition-all duration-200 relative"
+              className="p-2 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-all duration-200 relative"
             >
               <Bell className="w-5 h-5" />
               {/* Notification badge */}
-              <span className="absolute top-1 right-1 w-2 h-2 bg-primary-500 rounded-full" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
             </button>
 
             {/* Notifications Dropdown */}
             {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 rounded-xl bg-dark-800 border border-dark-700 shadow-xl animate-fade-in">
-                <div className="p-4 border-b border-dark-700">
-                  <h3 className="font-semibold text-dark-100">Notifications</h3>
+              <div className="absolute right-0 mt-2 w-80 rounded-2xl bg-white border border-gray-200 shadow-xl">
+                <div className="p-4 border-b border-gray-100">
+                  <h3 className="font-semibold text-gray-900">Notifications</h3>
                 </div>
-                <div className="p-4">
-                  <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-dark-700 transition-colors cursor-pointer">
-                    <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
-                      <span className="text-green-400 text-sm">✓</span>
+                <div className="p-2">
+                  <div className="flex items-start gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
+                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                      <span className="text-green-600 text-sm">✓</span>
                     </div>
                     <div>
-                      <p className="text-sm text-dark-100">Clone completed</p>
-                      <p className="text-xs text-dark-500">www.jeton.com finished cloning</p>
+                      <p className="text-sm text-gray-900">Clone completed</p>
+                      <p className="text-xs text-gray-500">www.example.com finished cloning</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-dark-700 transition-colors cursor-pointer">
-                    <div className="w-8 h-8 rounded-full bg-primary-500/20 flex items-center justify-center flex-shrink-0">
-                      <span className="text-primary-400 text-sm">★</span>
+                  <div className="flex items-start gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
+                    <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
+                      <span className="text-violet-600 text-sm">★</span>
                     </div>
                     <div>
-                      <p className="text-sm text-dark-100">Welcome to Merlin!</p>
-                      <p className="text-xs text-dark-500">Start by cloning your first website</p>
+                      <p className="text-sm text-gray-900">Welcome to Merlin!</p>
+                      <p className="text-xs text-gray-500">Start by cloning your first website</p>
                     </div>
                   </div>
                 </div>
-                <div className="p-3 border-t border-dark-700">
-                  <button className="w-full text-center text-sm text-primary-400 hover:text-primary-300">
+                <div className="p-3 border-t border-gray-100">
+                  <button className="w-full text-center text-sm text-violet-600 hover:text-violet-700 font-medium">
                     View all notifications
                   </button>
                 </div>
@@ -186,44 +187,44 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                 setShowUserMenu(!showUserMenu)
                 setShowNotifications(false)
               }}
-              className="flex items-center gap-2 p-1.5 pr-3 rounded-lg hover:bg-dark-800 transition-all duration-200"
+              className="flex items-center gap-2 p-1.5 pr-3 rounded-xl hover:bg-gray-100 transition-all duration-200"
             >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center">
                 <User className="w-4 h-4 text-white" />
               </div>
-              <span className="hidden sm:block text-sm font-medium text-dark-200">
+              <span className="hidden sm:block text-sm font-medium text-gray-700">
                 {user?.name || 'User'}
               </span>
-              <ChevronDown className={`w-4 h-4 text-dark-500 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
             </button>
 
             {/* User Dropdown */}
             {showUserMenu && (
-              <div className="absolute right-0 mt-2 w-56 rounded-xl bg-dark-800 border border-dark-700 shadow-xl animate-fade-in">
-                <div className="p-4 border-b border-dark-700">
-                  <p className="font-semibold text-dark-100">{user?.name || 'User'}</p>
-                  <p className="text-sm text-dark-500 truncate">{user?.email}</p>
+              <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-white border border-gray-200 shadow-xl">
+                <div className="p-4 border-b border-gray-100">
+                  <p className="font-semibold text-gray-900">{user?.name || 'User'}</p>
+                  <p className="text-sm text-gray-500 truncate">{user?.email}</p>
                 </div>
                 <div className="p-2">
                   <Link
                     to="/settings"
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-dark-300 hover:text-dark-100 hover:bg-dark-700 transition-colors"
+                    className="flex items-center gap-3 px-3 py-2 rounded-xl text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
                   >
                     <Settings className="w-4 h-4" />
                     <span className="text-sm">Settings</span>
                   </Link>
                   <Link
                     to="/pricing"
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-dark-300 hover:text-dark-100 hover:bg-dark-700 transition-colors"
+                    className="flex items-center gap-3 px-3 py-2 rounded-xl text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
                   >
                     <CreditCard className="w-4 h-4" />
                     <span className="text-sm">Billing</span>
                   </Link>
                 </div>
-                <div className="p-2 border-t border-dark-700">
+                <div className="p-2 border-t border-gray-100">
                   <button
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
                   >
                     <LogOut className="w-4 h-4" />
                     <span className="text-sm">Sign out</span>

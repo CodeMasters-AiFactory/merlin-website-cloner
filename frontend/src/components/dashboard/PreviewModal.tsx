@@ -10,6 +10,8 @@ import {
   Maximize2,
   CheckCircle,
   Globe,
+  AlertTriangle,
+  Trash2,
 } from 'lucide-react'
 
 interface CloneJob {
@@ -22,6 +24,13 @@ interface CloneJob {
     passed: boolean
     score: number
     summary: string
+    timestamp?: string
+    checks?: Array<{
+      name: string
+      category: string
+      passed: boolean
+      message: string
+    }>
   }
 }
 
@@ -36,15 +45,34 @@ const viewports: Record<ViewportSize, { width: string; icon: React.ElementType; 
 interface PreviewModalProps {
   job: CloneJob
   onClose: () => void
+  onDelete?: (job: CloneJob) => void
 }
 
-export function PreviewModal({ job, onClose }: PreviewModalProps) {
+export function PreviewModal({ job, onClose, onDelete }: PreviewModalProps) {
   const [viewport, setViewport] = useState<ViewportSize>('desktop')
   const [isLoading, setIsLoading] = useState(true)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [previewError, setPreviewError] = useState(false)
 
   const hostname = new URL(job.url).hostname
   const previewUrl = `/preview/${job.id}/index.html`
+
+  // Check if preview exists before loading iframe
+  useEffect(() => {
+    const checkPreview = async () => {
+      try {
+        const response = await fetch(previewUrl, { method: 'HEAD' })
+        if (!response.ok) {
+          setPreviewError(true)
+          setIsLoading(false)
+        }
+      } catch {
+        setPreviewError(true)
+        setIsLoading(false)
+      }
+    }
+    checkPreview()
+  }, [previewUrl])
 
   // Close on Escape key
   useEffect(() => {
@@ -219,7 +247,7 @@ export function PreviewModal({ job, onClose }: PreviewModalProps) {
             </div>
 
             {/* Loading overlay */}
-            {isLoading && (
+            {isLoading && !previewError && (
               <div className="absolute inset-0 bg-dark-900 flex items-center justify-center z-10">
                 <div className="flex flex-col items-center gap-4">
                   <div className="w-12 h-12 rounded-full border-2 border-primary-500 border-t-transparent animate-spin" />
@@ -228,15 +256,62 @@ export function PreviewModal({ job, onClose }: PreviewModalProps) {
               </div>
             )}
 
+            {/* Error state - files not found */}
+            {previewError && (
+              <div className="absolute inset-0 bg-dark-900 flex items-center justify-center z-10">
+                <div className="flex flex-col items-center gap-4 text-center p-8">
+                  <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center">
+                    <AlertTriangle className="w-8 h-8 text-red-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-dark-100">Preview Not Available</h3>
+                  <p className="text-dark-400 max-w-md">
+                    The cloned files for this website are no longer available.
+                    This may happen if the files were deleted or moved.
+                  </p>
+                  <div className="flex items-center gap-3 mt-4">
+                    {onDelete && (
+                      <button
+                        onClick={() => {
+                          onDelete(job)
+                          onClose()
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-medium transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete Job
+                      </button>
+                    )}
+                    <a
+                      href={job.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-dark-700 hover:bg-dark-600 text-dark-200 text-sm font-medium transition-colors"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      Visit Original Site
+                    </a>
+                    <button
+                      onClick={onClose}
+                      className="px-4 py-2 rounded-lg text-dark-400 hover:text-dark-200 text-sm transition-colors"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Iframe */}
-            <iframe
-              id="preview-iframe"
-              src={previewUrl}
-              className="w-full h-full border-0"
-              title={`Preview of ${hostname}`}
-              onLoad={() => setIsLoading(false)}
-              sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-            />
+            {!previewError && (
+              <iframe
+                id="preview-iframe"
+                src={previewUrl}
+                className="w-full h-full border-0"
+                title={`Preview of ${hostname}`}
+                onLoad={() => setIsLoading(false)}
+                sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+              />
+            )}
           </div>
         </div>
 

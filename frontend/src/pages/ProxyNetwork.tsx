@@ -6,7 +6,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  Globe,
   Server,
   Zap,
   TrendingUp,
@@ -15,9 +14,11 @@ import {
   Activity,
   ArrowRight,
   Check,
-  Copy
+  Copy,
+  Globe
 } from 'lucide-react'
 import api from '../utils/api'
+import { Navbar, Footer } from '../components/layout'
 
 interface NetworkStats {
   totalNodes: number
@@ -96,29 +97,15 @@ export default function ProxyNetwork() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-600"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center space-x-2">
-              <Globe className="w-8 h-8 text-primary-600" />
-              <span className="text-xl font-bold text-gray-900">Merlin Clone</span>
-            </Link>
-            <nav className="flex items-center space-x-6">
-              <Link to="/dashboard" className="text-gray-600 hover:text-primary-600">Dashboard</Link>
-              <Link to="/pricing" className="text-gray-600 hover:text-primary-600">Pricing</Link>
-            </nav>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-white">
+      <Navbar transparent />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Hero Section */}
@@ -354,7 +341,7 @@ export default function ProxyNetwork() {
         <div className="mt-12 text-center">
           <Link
             to="/dashboard"
-            className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition-colors"
+            className="inline-flex items-center px-6 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition-colors"
           >
             Go to Dashboard
             <ArrowRight className="w-5 h-5 ml-2" />
@@ -362,13 +349,7 @@ export default function ProxyNetwork() {
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400 py-8 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p>&copy; {new Date().getFullYear()} Merlin Clone. All rights reserved.</p>
-          <p className="mt-2 text-sm">Powered by our community of contributors - No third-party proxies!</p>
-        </div>
-      </footer>
+      <Footer minimal />
     </div>
   )
 }

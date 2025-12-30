@@ -1,0 +1,1955 @@
+{
+  "1765891302057": {
+    "id": "1765891302057",
+    "userId": "1765891284130",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 0,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1765891284130/1765891302057",
+    "createdAt": "2025-12-16T13:21:42.057Z",
+    "completedAt": "2025-12-20T11:21:48.919Z",
+    "errors": []
+  },
+  "1765891422258": {
+    "id": "1765891422258",
+    "userId": "1765891284130",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1765891284130/1765891422258",
+    "createdAt": "2025-12-16T13:23:42.258Z",
+    "completedAt": "2025-12-20T11:21:48.920Z",
+    "errors": []
+  },
+  "1765891585190": {
+    "id": "1765891585190",
+    "userId": "1765891284130",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1765891284130/1765891585190",
+    "createdAt": "2025-12-16T13:26:25.190Z",
+    "completedAt": "2025-12-20T11:21:48.921Z",
+    "errors": []
+  },
+  "1765891619771": {
+    "id": "1765891619771",
+    "userId": "1765891284130",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 0,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1765891284130/1765891619771",
+    "createdAt": "2025-12-16T13:26:59.771Z",
+    "completedAt": "2025-12-20T11:21:48.922Z",
+    "errors": []
+  },
+  "1765892388699": {
+    "id": "1765892388699",
+    "userId": "1765891284130",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 0,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1765891284130/1765892388699",
+    "createdAt": "2025-12-16T13:39:48.699Z",
+    "completedAt": "2025-12-20T11:21:48.923Z",
+    "errors": []
+  },
+  "1765892462801": {
+    "id": "1765892462801",
+    "userId": "1765891284130",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 0,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1765891284130/1765892462801",
+    "createdAt": "2025-12-16T13:41:02.801Z",
+    "completedAt": "2025-12-20T11:21:48.924Z",
+    "errors": []
+  },
+  "1765892558679": {
+    "id": "1765892558679",
+    "userId": "1765891284130",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 0,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1765891284130/1765892558679",
+    "createdAt": "2025-12-16T13:42:38.679Z",
+    "completedAt": "2025-12-20T11:21:48.925Z",
+    "errors": []
+  },
+  "1765892681297": {
+    "id": "1765892681297",
+    "userId": "1765891284130",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 0,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1765891284130/1765892681297",
+    "createdAt": "2025-12-16T13:44:41.297Z",
+    "completedAt": "2025-12-20T11:21:48.925Z",
+    "errors": []
+  },
+  "1765892830503": {
+    "id": "1765892830503",
+    "userId": "1765891284130",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 0,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1765891284130/1765892830503",
+    "createdAt": "2025-12-16T13:47:10.503Z",
+    "completedAt": "2025-12-20T11:21:48.926Z",
+    "errors": []
+  },
+  "1765892938680": {
+    "id": "1765892938680",
+    "userId": "1765891284130",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 0,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1765891284130/1765892938680",
+    "createdAt": "2025-12-16T13:48:58.680Z",
+    "completedAt": "2025-12-20T11:21:48.927Z",
+    "errors": []
+  },
+  "1765893105159": {
+    "id": "1765893105159",
+    "userId": "1765891284130",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 0,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1765891284130/1765893105159",
+    "createdAt": "2025-12-16T13:51:45.159Z",
+    "completedAt": "2025-12-20T11:21:48.928Z",
+    "errors": []
+  },
+  "1765893314198": {
+    "id": "1765893314198",
+    "userId": "1765891284130",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 0,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1765891284130/1765893314198",
+    "createdAt": "2025-12-16T13:55:14.198Z",
+    "completedAt": "2025-12-20T11:21:48.928Z",
+    "errors": []
+  },
+  "1765893570611": {
+    "id": "1765893570611",
+    "userId": "1765891284130",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 0,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1765891284130/1765893570611",
+    "createdAt": "2025-12-16T13:59:30.611Z",
+    "completedAt": "2025-12-20T11:21:48.929Z",
+    "errors": []
+  },
+  "1765894301949": {
+    "id": "1765894301949",
+    "userId": "1765891284130",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1765891284130/1765894301949",
+    "createdAt": "2025-12-16T14:11:41.949Z",
+    "completedAt": "2025-12-20T11:21:48.930Z",
+    "errors": []
+  },
+  "clone-export.static": {
+    "id": "clone-export.static",
+    "userId": "1765891284130",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1765891284130/clone-export.static",
+    "createdAt": "2025-12-20T11:21:48.931Z",
+    "completedAt": "2025-12-20T11:21:48.931Z",
+    "errors": []
+  },
+  "1766219108170": {
+    "id": "1766219108170",
+    "userId": "1766218262084",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1766218262084/1766219108170",
+    "createdAt": "2025-12-20T08:25:08.170Z",
+    "completedAt": "2025-12-20T11:21:48.932Z",
+    "errors": []
+  },
+  "1766219506361": {
+    "id": "1766219506361",
+    "userId": "1766218262084",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1766218262084/1766219506361",
+    "createdAt": "2025-12-20T08:31:46.361Z",
+    "completedAt": "2025-12-20T11:21:48.933Z",
+    "errors": []
+  },
+  "1766220080201": {
+    "id": "1766220080201",
+    "userId": "1766219684050",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 0,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1766219684050/1766220080201",
+    "createdAt": "2025-12-20T08:41:20.201Z",
+    "completedAt": "2025-12-20T11:21:48.934Z",
+    "errors": []
+  },
+  "1766221092048": {
+    "id": "1766221092048",
+    "userId": "1766221066953",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1766221066953/1766221092048",
+    "createdAt": "2025-12-20T08:58:12.048Z",
+    "completedAt": "2025-12-20T11:21:48.935Z",
+    "errors": []
+  },
+  "1766221180556": {
+    "id": "1766221180556",
+    "userId": "1766221162166",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1766221162166/1766221180556",
+    "createdAt": "2025-12-20T08:59:40.556Z",
+    "completedAt": "2025-12-20T11:21:48.936Z",
+    "errors": []
+  },
+  "1766221914745": {
+    "id": "1766221914745",
+    "userId": "1766221527146",
+    "url": "./",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 15,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1766221527146/1766221914745",
+    "createdAt": "2025-12-20T09:11:54.745Z",
+    "completedAt": "2025-12-20T11:21:48.940Z",
+    "errors": []
+  },
+  "1766221631582": {
+    "id": "1766221631582",
+    "userId": "1766221624685",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1766221624685/1766221631582",
+    "createdAt": "2025-12-20T09:07:11.582Z",
+    "completedAt": "2025-12-20T11:21:48.942Z",
+    "errors": []
+  },
+  "1766222688902": {
+    "id": "1766222688902",
+    "userId": "1766222681280",
+    "url": "./",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 15,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1766222681280/1766222688902",
+    "createdAt": "2025-12-20T09:24:48.902Z",
+    "completedAt": "2025-12-20T11:21:48.944Z",
+    "errors": []
+  },
+  "1766231103676": {
+    "userId": "1766230058204",
+    "url": "https://news.ycombinator.com",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1766230058204/1766231103674",
+    "errors": [],
+    "id": "1766231103676",
+    "createdAt": "2025-12-20T11:45:03.676Z",
+    "currentUrl": "",
+    "currentStatus": "complete",
+    "message": "Clone completed successfully!",
+    "recentFiles": [
+      {
+        "path": "clones\\1766230058204\\1766231103674\\index.html",
+        "size": 34591,
+        "type": "html",
+        "timestamp": "2025-12-20T11:45:24.463Z"
+      }
+    ],
+    "completedAt": "2025-12-20T11:45:27.072Z"
+  },
+  "1766231192325": {
+    "userId": "1766230058204",
+    "url": "https://getbootstrap.com/docs/5.3/examples/album/",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 1,
+    "outputDir": "./clones/1766230058204/1766231192324",
+    "errors": [],
+    "id": "1766231192325",
+    "createdAt": "2025-12-20T11:46:32.325Z",
+    "currentUrl": "",
+    "currentStatus": "complete",
+    "message": "Clone completed successfully!",
+    "recentFiles": [
+      {
+        "path": "clones\\1766230058204\\1766231192324\\docs\\5.3\\examples\\album\\index.html",
+        "size": 17042,
+        "type": "html",
+        "timestamp": "2025-12-20T11:46:49.985Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231192324\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T11:46:47.590Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231192324\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T11:46:47.590Z"
+      }
+    ],
+    "completedAt": "2025-12-20T11:46:52.737Z"
+  },
+  "1766231103674": {
+    "id": "1766231103674",
+    "userId": "1766230058204",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1766230058204/1766231103674",
+    "createdAt": "2025-12-20T11:45:03.674Z",
+    "completedAt": "2025-12-20T11:48:14.016Z",
+    "errors": []
+  },
+  "1766231192324": {
+    "id": "1766231192324",
+    "userId": "1766230058204",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1766230058204/1766231192324",
+    "createdAt": "2025-12-20T11:46:32.324Z",
+    "completedAt": "2025-12-20T11:48:14.017Z",
+    "errors": []
+  },
+  "1766231300745": {
+    "userId": "1766230058204",
+    "url": "https://getbootstrap.com/docs/5.3/examples/album/",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 1,
+    "outputDir": "./clones/1766230058204/1766231300743",
+    "errors": [],
+    "id": "1766231300745",
+    "createdAt": "2025-12-20T11:48:20.745Z",
+    "currentUrl": "",
+    "currentStatus": "complete",
+    "message": "Clone completed successfully!",
+    "recentFiles": [
+      {
+        "path": "clones\\1766230058204\\1766231300743\\docs\\5.3\\examples\\album\\index.html",
+        "size": 17042,
+        "type": "html",
+        "timestamp": "2025-12-20T11:48:24.040Z"
+      }
+    ],
+    "completedAt": "2025-12-20T11:48:26.642Z"
+  },
+  "1766231375900": {
+    "userId": "1766230058204",
+    "url": "https://tailwindcss.com/",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 141,
+    "outputDir": "./clones/1766230058204/1766231375899",
+    "errors": [],
+    "id": "1766231375900",
+    "createdAt": "2025-12-20T11:49:35.900Z",
+    "currentUrl": "",
+    "currentStatus": "complete",
+    "message": "Clone completed successfully!",
+    "recentFiles": [
+      {
+        "path": "clones\\1766230058204\\1766231375899\\index.html",
+        "size": 677926,
+        "type": "html",
+        "timestamp": "2025-12-20T11:49:58.190Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231375899\\assets\\js\\script_koj644.js",
+        "size": 6153,
+        "type": "js",
+        "timestamp": "2025-12-20T11:49:55.503Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231375899\\assets\\js\\script_koj644.js",
+        "size": 6153,
+        "type": "js",
+        "timestamp": "2025-12-20T11:49:55.503Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231375899\\assets\\js\\polyfills_42372ed130431b0a_95cf0p.js",
+        "size": 112594,
+        "type": "js",
+        "timestamp": "2025-12-20T11:49:55.421Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231375899\\assets\\js\\polyfills_42372ed130431b0a_95cf0p.js",
+        "size": 112594,
+        "type": "js",
+        "timestamp": "2025-12-20T11:49:55.421Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231375899\\assets\\js\\polyfills_42372ed130431b0a_95cf0p.js",
+        "size": 112594,
+        "type": "js",
+        "timestamp": "2025-12-20T11:49:55.421Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231375899\\assets\\js\\98ef11a5_a720ac417b255f6b_t8fjkr.js",
+        "size": 168419,
+        "type": "js",
+        "timestamp": "2025-12-20T11:49:55.285Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231375899\\assets\\js\\98ef11a5_a720ac417b255f6b_t8fjkr.js",
+        "size": 168419,
+        "type": "js",
+        "timestamp": "2025-12-20T11:49:55.285Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231375899\\assets\\js\\8347_101aaec2c8881caf_1tahtt.js",
+        "size": 175973,
+        "type": "js",
+        "timestamp": "2025-12-20T11:49:55.285Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231375899\\assets\\js\\98ef11a5_a720ac417b255f6b_t8fjkr.js",
+        "size": 168419,
+        "type": "js",
+        "timestamp": "2025-12-20T11:49:55.285Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231375899\\assets\\js\\8347_101aaec2c8881caf_1tahtt.js",
+        "size": 175973,
+        "type": "js",
+        "timestamp": "2025-12-20T11:49:55.285Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231375899\\assets\\js\\98ef11a5_a720ac417b255f6b_t8fjkr.js",
+        "size": 168419,
+        "type": "js",
+        "timestamp": "2025-12-20T11:49:55.285Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231375899\\assets\\js\\8347_101aaec2c8881caf_1tahtt.js",
+        "size": 175973,
+        "type": "js",
+        "timestamp": "2025-12-20T11:49:55.285Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231375899\\assets\\js\\98ef11a5_a720ac417b255f6b_t8fjkr.js",
+        "size": 168419,
+        "type": "js",
+        "timestamp": "2025-12-20T11:49:55.285Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231375899\\assets\\js\\8347_101aaec2c8881caf_1tahtt.js",
+        "size": 175973,
+        "type": "js",
+        "timestamp": "2025-12-20T11:49:55.285Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231375899\\assets\\js\\main_app_0824638dd3116a05_po8l7a.js",
+        "size": 532,
+        "type": "js",
+        "timestamp": "2025-12-20T11:49:55.280Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231375899\\assets\\js\\main_app_0824638dd3116a05_po8l7a.js",
+        "size": 532,
+        "type": "js",
+        "timestamp": "2025-12-20T11:49:55.280Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231375899\\assets\\js\\main_app_0824638dd3116a05_po8l7a.js",
+        "size": 532,
+        "type": "js",
+        "timestamp": "2025-12-20T11:49:55.280Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231375899\\assets\\js\\main_app_0824638dd3116a05_po8l7a.js",
+        "size": 532,
+        "type": "js",
+        "timestamp": "2025-12-20T11:49:55.280Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231375899\\assets\\js\\main_app_0824638dd3116a05_po8l7a.js",
+        "size": 532,
+        "type": "js",
+        "timestamp": "2025-12-20T11:49:55.280Z"
+      }
+    ],
+    "completedAt": "2025-12-20T11:50:01.211Z"
+  },
+  "1766231300743": {
+    "id": "1766231300743",
+    "userId": "1766230058204",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1766230058204/1766231300743",
+    "createdAt": "2025-12-20T11:48:20.743Z",
+    "completedAt": "2025-12-20T11:52:00.963Z",
+    "errors": []
+  },
+  "1766231375899": {
+    "id": "1766231375899",
+    "userId": "1766230058204",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1766230058204/1766231375899",
+    "createdAt": "2025-12-20T11:49:35.899Z",
+    "completedAt": "2025-12-20T11:52:00.964Z",
+    "errors": []
+  },
+  "1766231544522": {
+    "userId": "1766230058204",
+    "url": "https://www.example.com",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1766230058204/1766231544517",
+    "errors": [],
+    "id": "1766231544522",
+    "createdAt": "2025-12-20T11:52:24.522Z",
+    "currentUrl": "",
+    "currentStatus": "complete",
+    "message": "Clone completed successfully!",
+    "recentFiles": [
+      {
+        "path": "clones\\1766230058204\\1766231544517\\index.html",
+        "size": 528,
+        "type": "html",
+        "timestamp": "2025-12-20T11:52:38.166Z"
+      }
+    ],
+    "completedAt": "2025-12-20T11:52:40.725Z"
+  },
+  "1766231584359": {
+    "userId": "1766230058204",
+    "url": "https://tailwindcss.com/",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 143,
+    "outputDir": "./clones/1766230058204/1766231584358",
+    "errors": [],
+    "id": "1766231584359",
+    "createdAt": "2025-12-20T11:53:04.359Z",
+    "currentUrl": "",
+    "currentStatus": "complete",
+    "message": "Clone completed successfully!",
+    "recentFiles": [
+      {
+        "path": "clones\\1766230058204\\1766231584358\\index.html",
+        "size": 676082,
+        "type": "html",
+        "timestamp": "2025-12-20T11:53:25.424Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231584358\\assets\\js\\script_koj644.js",
+        "size": 6153,
+        "type": "js",
+        "timestamp": "2025-12-20T11:53:22.779Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231584358\\assets\\js\\script_koj644.js",
+        "size": 6153,
+        "type": "js",
+        "timestamp": "2025-12-20T11:53:22.779Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231584358\\assets\\js\\98ef11a5_a720ac417b255f6b_t8fjkr.js",
+        "size": 168419,
+        "type": "js",
+        "timestamp": "2025-12-20T11:53:22.642Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231584358\\assets\\js\\98ef11a5_a720ac417b255f6b_t8fjkr.js",
+        "size": 168419,
+        "type": "js",
+        "timestamp": "2025-12-20T11:53:22.642Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231584358\\assets\\js\\98ef11a5_a720ac417b255f6b_t8fjkr.js",
+        "size": 168419,
+        "type": "js",
+        "timestamp": "2025-12-20T11:53:22.642Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231584358\\assets\\js\\webpack_027337bb2397c1d7_u76dqo.js",
+        "size": 3859,
+        "type": "js",
+        "timestamp": "2025-12-20T11:53:22.641Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231584358\\assets\\js\\webpack_027337bb2397c1d7_u76dqo.js",
+        "size": 3859,
+        "type": "js",
+        "timestamp": "2025-12-20T11:53:22.641Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231584358\\assets\\js\\polyfills_42372ed130431b0a_95cf0p.js",
+        "size": 112594,
+        "type": "js",
+        "timestamp": "2025-12-20T11:53:22.641Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231584358\\assets\\js\\webpack_027337bb2397c1d7_u76dqo.js",
+        "size": 3859,
+        "type": "js",
+        "timestamp": "2025-12-20T11:53:22.641Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231584358\\assets\\js\\polyfills_42372ed130431b0a_95cf0p.js",
+        "size": 112594,
+        "type": "js",
+        "timestamp": "2025-12-20T11:53:22.641Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231584358\\assets\\js\\8347_101aaec2c8881caf_1tahtt.js",
+        "size": 175973,
+        "type": "js",
+        "timestamp": "2025-12-20T11:53:22.641Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231584358\\assets\\js\\webpack_027337bb2397c1d7_u76dqo.js",
+        "size": 3859,
+        "type": "js",
+        "timestamp": "2025-12-20T11:53:22.641Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231584358\\assets\\js\\polyfills_42372ed130431b0a_95cf0p.js",
+        "size": 112594,
+        "type": "js",
+        "timestamp": "2025-12-20T11:53:22.641Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231584358\\assets\\js\\8347_101aaec2c8881caf_1tahtt.js",
+        "size": 175973,
+        "type": "js",
+        "timestamp": "2025-12-20T11:53:22.641Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231584358\\assets\\js\\webpack_027337bb2397c1d7_u76dqo.js",
+        "size": 3859,
+        "type": "js",
+        "timestamp": "2025-12-20T11:53:22.641Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231584358\\assets\\js\\polyfills_42372ed130431b0a_95cf0p.js",
+        "size": 112594,
+        "type": "js",
+        "timestamp": "2025-12-20T11:53:22.641Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231584358\\assets\\js\\8347_101aaec2c8881caf_1tahtt.js",
+        "size": 175973,
+        "type": "js",
+        "timestamp": "2025-12-20T11:53:22.641Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231584358\\assets\\js\\webpack_027337bb2397c1d7_u76dqo.js",
+        "size": 3859,
+        "type": "js",
+        "timestamp": "2025-12-20T11:53:22.641Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231584358\\assets\\js\\polyfills_42372ed130431b0a_95cf0p.js",
+        "size": 112594,
+        "type": "js",
+        "timestamp": "2025-12-20T11:53:22.641Z"
+      }
+    ],
+    "completedAt": "2025-12-20T11:53:29.841Z"
+  },
+  "1766231544517": {
+    "id": "1766231544517",
+    "userId": "1766230058204",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1766230058204/1766231544517",
+    "createdAt": "2025-12-20T11:52:24.517Z",
+    "completedAt": "2025-12-20T11:57:41.316Z",
+    "errors": []
+  },
+  "1766231584358": {
+    "id": "1766231584358",
+    "userId": "1766230058204",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1766230058204/1766231584358",
+    "createdAt": "2025-12-20T11:53:04.358Z",
+    "completedAt": "2025-12-20T11:57:41.318Z",
+    "errors": []
+  },
+  "1766231871236": {
+    "userId": "1766230058204",
+    "url": "https://getbootstrap.com/docs/5.3/examples/album/",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 11,
+    "outputDir": "./clones/1766230058204/1766231871235",
+    "errors": [],
+    "id": "1766231871236",
+    "createdAt": "2025-12-20T11:57:51.236Z",
+    "currentUrl": "",
+    "currentStatus": "complete",
+    "message": "Clone completed successfully!",
+    "recentFiles": [
+      {
+        "path": "clones\\1766230058204\\1766231871235\\docs\\5.3\\examples\\album\\index.html",
+        "size": 17042,
+        "type": "html",
+        "timestamp": "2025-12-20T11:58:10.935Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231871235\\assets\\js\\bootstrap_bundle_min_gskgyo.js",
+        "size": 80496,
+        "type": "js",
+        "timestamp": "2025-12-20T11:58:08.801Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231871235\\assets\\js\\bootstrap_bundle_min_gskgyo.js",
+        "size": 80496,
+        "type": "js",
+        "timestamp": "2025-12-20T11:58:08.801Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231871235\\assets\\js\\color_modes_10f5b5.js",
+        "size": 2596,
+        "type": "js",
+        "timestamp": "2025-12-20T11:58:08.792Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231871235\\assets\\js\\color_modes_10f5b5.js",
+        "size": 2596,
+        "type": "js",
+        "timestamp": "2025-12-20T11:58:08.792Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231871235\\assets\\js\\color_modes_10f5b5.js",
+        "size": 2596,
+        "type": "js",
+        "timestamp": "2025-12-20T11:58:08.792Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231871235\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T11:58:08.735Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231871235\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T11:58:08.735Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231871235\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T11:58:08.735Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231871235\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T11:58:08.735Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231871235\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T11:58:08.636Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231871235\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T11:58:08.636Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231871235\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T11:58:08.636Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231871235\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T11:58:08.636Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231871235\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T11:58:08.636Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231871235\\assets\\icons\\apple_touch_icon_ni1tun.png",
+        "size": 7307,
+        "type": "icons",
+        "timestamp": "2025-12-20T11:58:08.570Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231871235\\assets\\icons\\apple_touch_icon_ni1tun.png",
+        "size": 7307,
+        "type": "icons",
+        "timestamp": "2025-12-20T11:58:08.570Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231871235\\assets\\icons\\apple_touch_icon_ni1tun.png",
+        "size": 7307,
+        "type": "icons",
+        "timestamp": "2025-12-20T11:58:08.570Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231871235\\assets\\icons\\apple_touch_icon_ni1tun.png",
+        "size": 7307,
+        "type": "icons",
+        "timestamp": "2025-12-20T11:58:08.570Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766231871235\\assets\\icons\\apple_touch_icon_ni1tun.png",
+        "size": 7307,
+        "type": "icons",
+        "timestamp": "2025-12-20T11:58:08.570Z"
+      }
+    ],
+    "completedAt": "2025-12-20T11:58:13.697Z"
+  },
+  "1766231871235": {
+    "id": "1766231871235",
+    "userId": "1766230058204",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1766230058204/1766231871235",
+    "createdAt": "2025-12-20T11:57:51.235Z",
+    "completedAt": "2025-12-20T11:59:25.075Z",
+    "errors": []
+  },
+  "1766232030892": {
+    "userId": "1766230058204",
+    "url": "https://getbootstrap.com/docs/5.3/examples/album/",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 11,
+    "outputDir": "./clones/1766230058204/1766232030891",
+    "errors": [],
+    "id": "1766232030892",
+    "createdAt": "2025-12-20T12:00:30.892Z",
+    "currentUrl": "",
+    "currentStatus": "complete",
+    "message": "Clone completed successfully!",
+    "recentFiles": [
+      {
+        "path": "clones\\1766230058204\\1766232030891\\docs\\5.3\\examples\\album\\index.html",
+        "size": 17042,
+        "type": "html",
+        "timestamp": "2025-12-20T12:00:47.682Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232030891\\assets\\js\\bootstrap_bundle_min_gskgyo.js",
+        "size": 80496,
+        "type": "js",
+        "timestamp": "2025-12-20T12:00:45.916Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232030891\\assets\\js\\bootstrap_bundle_min_gskgyo.js",
+        "size": 80496,
+        "type": "js",
+        "timestamp": "2025-12-20T12:00:45.916Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232030891\\assets\\js\\color_modes_10f5b5.js",
+        "size": 2596,
+        "type": "js",
+        "timestamp": "2025-12-20T12:00:45.915Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232030891\\assets\\js\\color_modes_10f5b5.js",
+        "size": 2596,
+        "type": "js",
+        "timestamp": "2025-12-20T12:00:45.915Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232030891\\assets\\js\\color_modes_10f5b5.js",
+        "size": 2596,
+        "type": "js",
+        "timestamp": "2025-12-20T12:00:45.915Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232030891\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:00:45.833Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232030891\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:00:45.833Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232030891\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:00:45.833Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232030891\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:00:45.833Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232030891\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:00:45.831Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232030891\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:00:45.831Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232030891\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:00:45.831Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232030891\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:00:45.831Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232030891\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:00:45.831Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232030891\\assets\\icons\\apple_touch_icon_ni1tun.png",
+        "size": 7307,
+        "type": "icons",
+        "timestamp": "2025-12-20T12:00:45.756Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232030891\\assets\\icons\\apple_touch_icon_ni1tun.png",
+        "size": 7307,
+        "type": "icons",
+        "timestamp": "2025-12-20T12:00:45.756Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232030891\\assets\\icons\\apple_touch_icon_ni1tun.png",
+        "size": 7307,
+        "type": "icons",
+        "timestamp": "2025-12-20T12:00:45.756Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232030891\\assets\\icons\\apple_touch_icon_ni1tun.png",
+        "size": 7307,
+        "type": "icons",
+        "timestamp": "2025-12-20T12:00:45.756Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232030891\\assets\\icons\\apple_touch_icon_ni1tun.png",
+        "size": 7307,
+        "type": "icons",
+        "timestamp": "2025-12-20T12:00:45.756Z"
+      }
+    ],
+    "completedAt": "2025-12-20T12:00:50.286Z"
+  },
+  "1766232030891": {
+    "id": "1766232030891",
+    "userId": "1766230058204",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1766230058204/1766232030891",
+    "createdAt": "2025-12-20T12:00:30.891Z",
+    "completedAt": "2025-12-20T12:04:33.863Z",
+    "errors": []
+  },
+  "1766232572507": {
+    "userId": "1766230058204",
+    "url": "https://getbootstrap.com/docs/5.3/examples/album/",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 11,
+    "outputDir": "./clones/1766230058204/1766232572506",
+    "errors": [],
+    "id": "1766232572507",
+    "createdAt": "2025-12-20T12:09:32.507Z",
+    "currentUrl": "",
+    "currentStatus": "complete",
+    "message": "Clone completed successfully!",
+    "recentFiles": [
+      {
+        "path": "clones\\1766230058204\\1766232572506\\docs\\5.3\\examples\\album\\index.html",
+        "size": 17042,
+        "type": "html",
+        "timestamp": "2025-12-20T12:09:51.337Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232572506\\assets\\js\\bootstrap_bundle_min_gskgyo.js",
+        "size": 80496,
+        "type": "js",
+        "timestamp": "2025-12-20T12:09:49.037Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232572506\\assets\\js\\bootstrap_bundle_min_gskgyo.js",
+        "size": 80496,
+        "type": "js",
+        "timestamp": "2025-12-20T12:09:49.037Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232572506\\assets\\js\\color_modes_10f5b5.js",
+        "size": 2596,
+        "type": "js",
+        "timestamp": "2025-12-20T12:09:49.032Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232572506\\assets\\js\\color_modes_10f5b5.js",
+        "size": 2596,
+        "type": "js",
+        "timestamp": "2025-12-20T12:09:49.032Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232572506\\assets\\js\\color_modes_10f5b5.js",
+        "size": 2596,
+        "type": "js",
+        "timestamp": "2025-12-20T12:09:49.032Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232572506\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:09:48.959Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232572506\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:09:48.959Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232572506\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:09:48.959Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232572506\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:09:48.959Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232572506\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:09:48.959Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232572506\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:09:48.959Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232572506\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:09:48.959Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232572506\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:09:48.959Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232572506\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:09:48.959Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232572506\\assets\\icons\\manifest_49o35n.json",
+        "size": 412,
+        "type": "icons",
+        "timestamp": "2025-12-20T12:09:48.889Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232572506\\assets\\icons\\manifest_49o35n.json",
+        "size": 412,
+        "type": "icons",
+        "timestamp": "2025-12-20T12:09:48.889Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232572506\\assets\\icons\\manifest_49o35n.json",
+        "size": 412,
+        "type": "icons",
+        "timestamp": "2025-12-20T12:09:48.889Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232572506\\assets\\icons\\manifest_49o35n.json",
+        "size": 412,
+        "type": "icons",
+        "timestamp": "2025-12-20T12:09:48.889Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232572506\\assets\\icons\\manifest_49o35n.json",
+        "size": 412,
+        "type": "icons",
+        "timestamp": "2025-12-20T12:09:48.889Z"
+      }
+    ],
+    "completedAt": "2025-12-20T12:09:54.057Z",
+    "verification": {
+      "passed": false,
+      "score": 0,
+      "summary": "Clone verification failed: No HTML files found",
+      "timestamp": "2025-12-20T12:09:54.055Z",
+      "checks": [
+        {
+          "name": "HTML Files",
+          "category": "html",
+          "passed": false,
+          "message": "No HTML files found in clone"
+        }
+      ]
+    }
+  },
+  "1766232572506": {
+    "id": "1766232572506",
+    "userId": "1766230058204",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1766230058204/1766232572506",
+    "createdAt": "2025-12-20T12:09:32.506Z",
+    "completedAt": "2025-12-20T12:11:06.699Z",
+    "errors": []
+  },
+  "1766232673630": {
+    "userId": "1766230058204",
+    "url": "https://getbootstrap.com/docs/5.3/examples/album/",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 11,
+    "outputDir": "./clones/1766230058204/1766232673629",
+    "errors": [],
+    "id": "1766232673630",
+    "createdAt": "2025-12-20T12:11:13.630Z",
+    "currentUrl": "",
+    "currentStatus": "complete",
+    "message": "Clone completed successfully!",
+    "recentFiles": [
+      {
+        "path": "clones\\1766230058204\\1766232673629\\docs\\5.3\\examples\\album\\index.html",
+        "size": 17042,
+        "type": "html",
+        "timestamp": "2025-12-20T12:11:29.203Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232673629\\assets\\js\\bootstrap_bundle_min_gskgyo.js",
+        "size": 80496,
+        "type": "js",
+        "timestamp": "2025-12-20T12:11:27.437Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232673629\\assets\\js\\bootstrap_bundle_min_gskgyo.js",
+        "size": 80496,
+        "type": "js",
+        "timestamp": "2025-12-20T12:11:27.437Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232673629\\assets\\js\\color_modes_10f5b5.js",
+        "size": 2596,
+        "type": "js",
+        "timestamp": "2025-12-20T12:11:27.108Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232673629\\assets\\js\\color_modes_10f5b5.js",
+        "size": 2596,
+        "type": "js",
+        "timestamp": "2025-12-20T12:11:27.108Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232673629\\assets\\js\\color_modes_10f5b5.js",
+        "size": 2596,
+        "type": "js",
+        "timestamp": "2025-12-20T12:11:27.108Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232673629\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:11:27.040Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232673629\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:11:27.040Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232673629\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:11:27.040Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232673629\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:11:27.040Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232673629\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:11:27.039Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232673629\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:11:27.039Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232673629\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:11:27.039Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232673629\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:11:27.039Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232673629\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:11:27.039Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232673629\\assets\\icons\\apple_touch_icon_ni1tun.png",
+        "size": 7307,
+        "type": "icons",
+        "timestamp": "2025-12-20T12:11:26.954Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232673629\\assets\\icons\\apple_touch_icon_ni1tun.png",
+        "size": 7307,
+        "type": "icons",
+        "timestamp": "2025-12-20T12:11:26.954Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232673629\\assets\\icons\\apple_touch_icon_ni1tun.png",
+        "size": 7307,
+        "type": "icons",
+        "timestamp": "2025-12-20T12:11:26.954Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232673629\\assets\\icons\\apple_touch_icon_ni1tun.png",
+        "size": 7307,
+        "type": "icons",
+        "timestamp": "2025-12-20T12:11:26.954Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232673629\\assets\\icons\\apple_touch_icon_ni1tun.png",
+        "size": 7307,
+        "type": "icons",
+        "timestamp": "2025-12-20T12:11:26.954Z"
+      }
+    ],
+    "completedAt": "2025-12-20T12:11:31.770Z",
+    "verification": {
+      "passed": false,
+      "score": 0,
+      "summary": "Clone verification failed: No HTML files found",
+      "timestamp": "2025-12-20T12:11:31.769Z",
+      "checks": [
+        {
+          "name": "HTML Files",
+          "category": "html",
+          "passed": false,
+          "message": "No HTML files found in clone"
+        }
+      ]
+    }
+  },
+  "1766232673629": {
+    "id": "1766232673629",
+    "userId": "1766230058204",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1766230058204/1766232673629",
+    "createdAt": "2025-12-20T12:11:13.629Z",
+    "completedAt": "2025-12-20T12:12:38.046Z",
+    "errors": []
+  },
+  "1766232845170": {
+    "userId": "1766230058204",
+    "url": "https://getbootstrap.com/docs/5.3/examples/album/",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 11,
+    "outputDir": "./clones/1766230058204/1766232845169",
+    "errors": [],
+    "id": "1766232845170",
+    "createdAt": "2025-12-20T12:14:05.170Z",
+    "currentUrl": "",
+    "currentStatus": "complete",
+    "message": "Clone completed successfully!",
+    "recentFiles": [
+      {
+        "path": "clones\\1766230058204\\1766232845169\\docs\\5.3\\examples\\album\\index.html",
+        "size": 17042,
+        "type": "html",
+        "timestamp": "2025-12-20T12:14:22.993Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232845169\\assets\\js\\bootstrap_bundle_min_gskgyo.js",
+        "size": 80496,
+        "type": "js",
+        "timestamp": "2025-12-20T12:14:20.878Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232845169\\assets\\js\\bootstrap_bundle_min_gskgyo.js",
+        "size": 80496,
+        "type": "js",
+        "timestamp": "2025-12-20T12:14:20.878Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232845169\\assets\\js\\color_modes_10f5b5.js",
+        "size": 2596,
+        "type": "js",
+        "timestamp": "2025-12-20T12:14:20.877Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232845169\\assets\\js\\color_modes_10f5b5.js",
+        "size": 2596,
+        "type": "js",
+        "timestamp": "2025-12-20T12:14:20.877Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232845169\\assets\\js\\color_modes_10f5b5.js",
+        "size": 2596,
+        "type": "js",
+        "timestamp": "2025-12-20T12:14:20.877Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232845169\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:14:20.802Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232845169\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:14:20.802Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232845169\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:14:20.802Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232845169\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:14:20.802Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232845169\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:14:20.791Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232845169\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:14:20.791Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232845169\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:14:20.791Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232845169\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:14:20.791Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232845169\\assets\\css\\bootstrap_min_w4ayee.css",
+        "size": 232111,
+        "type": "css",
+        "timestamp": "2025-12-20T12:14:20.791Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232845169\\assets\\icons\\manifest_49o35n.json",
+        "size": 412,
+        "type": "icons",
+        "timestamp": "2025-12-20T12:14:20.729Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232845169\\assets\\icons\\manifest_49o35n.json",
+        "size": 412,
+        "type": "icons",
+        "timestamp": "2025-12-20T12:14:20.729Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232845169\\assets\\icons\\manifest_49o35n.json",
+        "size": 412,
+        "type": "icons",
+        "timestamp": "2025-12-20T12:14:20.729Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232845169\\assets\\icons\\manifest_49o35n.json",
+        "size": 412,
+        "type": "icons",
+        "timestamp": "2025-12-20T12:14:20.729Z"
+      },
+      {
+        "path": "clones\\1766230058204\\1766232845169\\assets\\icons\\manifest_49o35n.json",
+        "size": 412,
+        "type": "icons",
+        "timestamp": "2025-12-20T12:14:20.729Z"
+      }
+    ],
+    "completedAt": "2025-12-20T12:14:25.586Z",
+    "verification": {
+      "passed": true,
+      "score": 88,
+      "summary": "✅ Clone verified successfully! Score: 88% (1 minor issues)",
+      "timestamp": "2025-12-20T12:14:25.584Z",
+      "checks": [
+        {
+          "name": "HTML Structure: docs\\5.3\\examples\\album\\index.html",
+          "category": "html",
+          "passed": true,
+          "message": "Valid HTML structure",
+          "details": [
+            "✓ DOCTYPE",
+            "✓ <html>",
+            "✓ <head>",
+            "✓ <body>"
+          ]
+        },
+        {
+          "name": "CSS Dependencies",
+          "category": "css",
+          "passed": true,
+          "message": "All 1 CSS files found",
+          "details": [
+            "✓ ../../../../assets/css/bootstrap_min_w4ayee.css"
+          ]
+        },
+        {
+          "name": "JavaScript Dependencies",
+          "category": "js",
+          "passed": true,
+          "message": "All 2 JS files found",
+          "details": [
+            "✓ ../../../../assets/js/color_modes_10f5b5.js",
+            "✓ ../../../../assets/js/bootstrap_bundle_min_gskgyo.js"
+          ]
+        },
+        {
+          "name": "Image Assets",
+          "category": "images",
+          "passed": true,
+          "message": "No images referenced"
+        },
+        {
+          "name": "Internal Links",
+          "category": "links",
+          "passed": true,
+          "message": "1/2 links broken",
+          "details": [
+            "✗ Broken: ../../getting-started/introduction"
+          ]
+        },
+        {
+          "name": "CSS Files Valid",
+          "category": "css",
+          "passed": true,
+          "message": "1 CSS files valid"
+        },
+        {
+          "name": "JavaScript Files",
+          "category": "js",
+          "passed": true,
+          "message": "2 JavaScript files captured"
+        },
+        {
+          "name": "Font Files",
+          "category": "fonts",
+          "passed": false,
+          "message": "0 font files captured"
+        }
+      ]
+    }
+  },
+  "1766232845169": {
+    "id": "1766232845169",
+    "userId": "1766230058204",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 1,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1766230058204/1766232845169",
+    "createdAt": "2025-12-20T12:14:05.169Z",
+    "completedAt": "2025-12-20T13:03:27.499Z",
+    "errors": []
+  },
+  "1766248187380": {
+    "userId": "1766230058204",
+    "url": "https://vercel.com",
+    "status": "processing",
+    "progress": 0,
+    "pagesCloned": 0,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1766230058204/1766248187379",
+    "errors": [],
+    "id": "1766248187380",
+    "createdAt": "2025-12-20T16:29:47.380Z",
+    "currentUrl": "https://vercel.com",
+    "currentStatus": "processing",
+    "message": "Creating directory structure...",
+    "recentFiles": []
+  },
+  "1766248187379": {
+    "id": "1766248187379",
+    "userId": "1766230058204",
+    "url": "Unknown (recovered from disk)",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 0,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1766230058204/1766248187379",
+    "createdAt": "2025-12-20T16:29:47.379Z",
+    "completedAt": "2025-12-20T16:42:32.182Z",
+    "errors": []
+  },
+  "1766495129494": {
+    "userId": "1766230242260",
+    "url": "https://www.jeton.com",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 16,
+    "assetsCaptured": 1977,
+    "outputDir": "./clones/1766230242260/1766495129493",
+    "errors": [],
+    "id": "1766495129494",
+    "createdAt": "2025-12-23T13:05:29.494Z",
+    "currentUrl": "",
+    "currentStatus": "complete",
+    "message": "Clone completed successfully!",
+    "recentFiles": [
+      {
+        "path": "clones\\1766230242260\\1766495129493\\promotions\\index.html",
+        "size": 204220,
+        "type": "html",
+        "timestamp": "2025-12-23T13:13:32.890Z"
+      },
+      {
+        "path": "clones\\1766230242260\\1766495129493\\jeton-card\\index.html",
+        "size": 203423,
+        "type": "html",
+        "timestamp": "2025-12-23T13:13:32.605Z"
+      },
+      {
+        "path": "clones\\1766230242260\\1766495129493\\jeton-card\\index.html",
+        "size": 203423,
+        "type": "html",
+        "timestamp": "2025-12-23T13:13:32.605Z"
+      },
+      {
+        "path": "clones\\1766230242260\\1766495129493\\about\\index.html",
+        "size": 202197,
+        "type": "html",
+        "timestamp": "2025-12-23T13:13:30.622Z"
+      },
+      {
+        "path": "clones\\1766230242260\\1766495129493\\about\\index.html",
+        "size": 202197,
+        "type": "html",
+        "timestamp": "2025-12-23T13:13:30.622Z"
+      },
+      {
+        "path": "clones\\1766230242260\\1766495129493\\about\\index.html",
+        "size": 202197,
+        "type": "html",
+        "timestamp": "2025-12-23T13:13:30.622Z"
+      },
+      {
+        "path": "clones\\1766230242260\\1766495129493\\fees\\index.html",
+        "size": 283097,
+        "type": "html",
+        "timestamp": "2025-12-23T13:13:30.612Z"
+      },
+      {
+        "path": "clones\\1766230242260\\1766495129493\\fees\\index.html",
+        "size": 283097,
+        "type": "html",
+        "timestamp": "2025-12-23T13:13:30.612Z"
+      },
+      {
+        "path": "clones\\1766230242260\\1766495129493\\fees\\index.html",
+        "size": 283097,
+        "type": "html",
+        "timestamp": "2025-12-23T13:13:30.612Z"
+      },
+      {
+        "path": "clones\\1766230242260\\1766495129493\\fees\\index.html",
+        "size": 283097,
+        "type": "html",
+        "timestamp": "2025-12-23T13:13:30.612Z"
+      },
+      {
+        "path": "clones\\1766230242260\\1766495129493\\newsroom\\index.html",
+        "size": 179571,
+        "type": "html",
+        "timestamp": "2025-12-23T13:13:30.312Z"
+      },
+      {
+        "path": "clones\\1766230242260\\1766495129493\\newsroom\\index.html",
+        "size": 179571,
+        "type": "html",
+        "timestamp": "2025-12-23T13:13:30.312Z"
+      },
+      {
+        "path": "clones\\1766230242260\\1766495129493\\newsroom\\index.html",
+        "size": 179571,
+        "type": "html",
+        "timestamp": "2025-12-23T13:13:30.312Z"
+      },
+      {
+        "path": "clones\\1766230242260\\1766495129493\\newsroom\\index.html",
+        "size": 179571,
+        "type": "html",
+        "timestamp": "2025-12-23T13:13:30.312Z"
+      },
+      {
+        "path": "clones\\1766230242260\\1766495129493\\newsroom\\index.html",
+        "size": 179571,
+        "type": "html",
+        "timestamp": "2025-12-23T13:13:30.312Z"
+      },
+      {
+        "path": "clones\\1766230242260\\1766495129493\\media-assets\\index.html",
+        "size": 195101,
+        "type": "html",
+        "timestamp": "2025-12-23T13:13:29.110Z"
+      },
+      {
+        "path": "clones\\1766230242260\\1766495129493\\media-assets\\index.html",
+        "size": 195101,
+        "type": "html",
+        "timestamp": "2025-12-23T13:13:29.110Z"
+      },
+      {
+        "path": "clones\\1766230242260\\1766495129493\\media-assets\\index.html",
+        "size": 195101,
+        "type": "html",
+        "timestamp": "2025-12-23T13:13:29.110Z"
+      },
+      {
+        "path": "clones\\1766230242260\\1766495129493\\media-assets\\index.html",
+        "size": 195101,
+        "type": "html",
+        "timestamp": "2025-12-23T13:13:29.110Z"
+      },
+      {
+        "path": "clones\\1766230242260\\1766495129493\\media-assets\\index.html",
+        "size": 195101,
+        "type": "html",
+        "timestamp": "2025-12-23T13:13:29.110Z"
+      }
+    ],
+    "exportPath": "clones\\1766230242260\\clone-export.zip",
+    "completedAt": "2025-12-23T13:13:55.984Z",
+    "verification": {
+      "passed": false,
+      "score": 63,
+      "summary": "⚠️ Clone has issues. Score: 63% - 29 failed checks",
+      "timestamp": "2025-12-23T13:13:55.982Z",
+      "checks": [
+        {
+          "name": "HTML Structure: about\\index.html",
+          "category": "html",
+          "passed": true,
+          "message": "Valid HTML structure",
+          "details": [
+            "✓ DOCTYPE",
+            "✓ <html>",
+            "✓ <head>",
+            "✓ <body>"
+          ]
+        },
+        {
+          "name": "CSS Dependencies",
+          "category": "css",
+          "passed": true,
+          "message": "All 11 CSS files found",
+          "details": [
+            "✓ ../assets/css/entry_D6em6db2_hlj88w.css",
+            "✓ ../assets/css/_B7MGqL3e_cv5vwp.css",
+            "✓ ../assets/css/CommonHeader_DFxrkEKr_i63kbz.css",
+            "✓ ../assets/css/JetonMission_B23qHtxv_l5t51s.css",
+            "✓ ../assets/css/JetonProduct_CemSTqFS_5fzl9j.css",
+            "✓ ../assets/css/JetonProduct_K4SB62u5_jo6zop.css",
+            "✓ ../assets/css/JetonValues_fYrzZGAF_px7l3h.css",
+            "✓ ../assets/css/CertificationsList_CGmWJFZg_5j0nkc.css",
+            "✓ ../assets/css/ExtraBoldHero_RuPJ55iK_h0p4om.css",
+            "✓ ../assets/css/Footer_QUSiLTRD_1yqbet.css",
+            "✓ ../assets/css/PageTransition_CReKMGQ4_2alikm.css"
+          ]
+        },
+        {
+          "name": "JavaScript Dependencies",
+          "category": "js",
+          "passed": true,
+          "message": "All 6 JS files found",
+          "details": [
+            "✓ ../assets/js/signature_ofkv00.js",
+            "✓ ../assets/js/umami_edxluj.js",
+            "✓ ../assets/js/script_m4h6zg.js",
+            "✓ ../assets/js/D_P8qzRA_v6i8xn.js",
+            "✓ ../assets/js/gtm_m7lo1t.js",
+            "✓ ../assets/js/snippet_k2i6nf.js"
+          ]
+        },
+        {
+          "name": "Image Assets",
+          "category": "images",
+          "passed": false,
+          "message": "25/32 images missing",
+          "details": [
+            "✗ Missing: ./_ipx/q_90&s_200x200/cms/2bc9ed5b8d4817448a406893182553c525f5b8ef-2478x2478.jpg",
+            "✗ Missing: ./_ipx/q_90&s_200x200/cms/6f85636fb47a919c3b5a09e01174167f1d909443-1360x1670.jpg",
+            "✗ Missing: ./_ipx/q_90&s_200x200/cms/af0e063715aaeb30c3dd198a2875e22ff8356636-2298x2297.jpg",
+            "✗ Missing: ./_ipx/q_90&s_200x200/cms/7d16904e7f8e88ebce4039c6f38bc4370456188b-600x600.jpg",
+            "✗ Missing: ./_ipx/q_90&s_200x200/cms/696e2847e46fb8fbe7e6e9c560d4ae97c76e82e1-600x600.jpg",
+            "✗ Missing: ./_ipx/q_90&s_200x200/cms/e3ecd6e55ee5d2e13b38fd1219a8385244f8ea87-600x600.jpg",
+            "✗ Missing: ./_ipx/q_90&s_200x200/cms/962f1a575f57a00999eaac03fa59cba22d634919-1200x1200.jpg",
+            "✗ Missing: ./_ipx/q_90&w_3400/cms/8b1582b5bc3dd3d817f8c20c4fa146ba34e420c0-4000x2667.jpg",
+            "✗ Missing: ./_ipx/q_90&w_1360/cms/305694f4a19ca64ba5333a04fc6578de87c78215-2712x1696.jpg",
+            "✗ Missing: ./_ipx/q_90&w_510/cms/e0a8df85cde69a92237ff544f5bbd9534d585794-348x348.png"
+          ]
+        },
+        {
+          "name": "Internal Links",
+          "category": "links",
+          "passed": false,
+          "message": "22/24 links broken",
+          "details": [
+            "✗ Broken: ./jeton-card",
+            "✗ Broken: ./fees",
+            "✗ Broken: ./about",
+            "✗ Broken: ./newsroom",
+            "✗ Broken: ./partnerships"
+          ]
+        },
+        {
+          "name": "HTML Structure: aml-policy\\index.html",
+          "category": "html",
+          "passed": true,
+          "message": "Valid HTML structure",
+          "details": [
+            "✓ DOCTYPE",
+            "✓ <html>",
+            "✓ <head>",
+            "✓ <body>"
+          ]
+        },
+        {
+          "name": "CSS Dependencies",
+          "category": "css",
+          "passed": true,
+          "message": "All 7 CSS files found",
+          "details": [
+            "✓ ../assets/css/entry_D6em6db2_hlj88w.css",
+            "✓ ../assets/css/_B7MGqL3e_cv5vwp.css",
+            "✓ ../assets/css/CommonHeader_DFxrkEKr_i63kbz.css",
+            "✓ ../assets/css/RichTextContent_YxKOBwa8_1c19fr.css",
+            "✓ ../assets/css/ExtraBoldHero_RuPJ55iK_h0p4om.css",
+            "✓ ../assets/css/Footer_QUSiLTRD_1yqbet.css",
+            "✓ ../assets/css/PageTransition_CReKMGQ4_2alikm.css"
+          ]
+        },
+        {
+          "name": "JavaScript Dependencies",
+          "category": "js",
+          "passed": true,
+          "message": "All 6 JS files found",
+          "details": [
+            "✓ ../assets/js/signature_ofkv00.js",
+            "✓ ../assets/js/umami_edxluj.js",
+            "✓ ../assets/js/script_m4h6zg.js",
+            "✓ ../assets/js/D_P8qzRA_v6i8xn.js",
+            "✓ ../assets/js/gtm_m7lo1t.js",
+            "✓ ../assets/js/snippet_k2i6nf.js"
+          ]
+        },
+        {
+          "name": "Image Assets",
+          "category": "images",
+          "passed": false,
+          "message": "17/24 images missing",
+          "details": [
+            "✗ Missing: ./_ipx/q_90&s_200x200/cms/2bc9ed5b8d4817448a406893182553c525f5b8ef-2478x2478.jpg",
+            "✗ Missing: ./_ipx/q_90&s_200x200/cms/6f85636fb47a919c3b5a09e01174167f1d909443-1360x1670.jpg",
+            "✗ Missing: ./_ipx/q_90&s_200x200/cms/af0e063715aaeb30c3dd198a2875e22ff8356636-2298x2297.jpg",
+            "✗ Missing: ./_ipx/q_90&s_200x200/cms/7d16904e7f8e88ebce4039c6f38bc4370456188b-600x600.jpg",
+            "✗ Missing: ./_ipx/q_90&s_200x200/cms/696e2847e46fb8fbe7e6e9c560d4ae97c76e82e1-600x600.jpg",
+            "✗ Missing: ./_ipx/q_90&s_200x200/cms/e3ecd6e55ee5d2e13b38fd1219a8385244f8ea87-600x600.jpg",
+            "✗ Missing: ./_ipx/q_90&s_200x200/cms/962f1a575f57a00999eaac03fa59cba22d634919-1200x1200.jpg",
+            "✗ Missing: ./_ipx/f_webp&q_90&s_102x128/cms/1151125d455608ae69070fdd56e5a71365f3e17e-192x240.png",
+            "✗ Missing: ./_ipx/f_webp&q_90&s_117x128/cms/091df0f4e5a50b54d7c480f4c4316e7cbb874404-220x240.png",
+            "✗ Missing: ./_ipx/f_webp&q_90&s_128x128/cms/1131d43c022f9f24598b699500ad3d2f0880c5ee-321x320.png"
+          ]
+        },
+        {
+          "name": "Internal Links",
+          "category": "links",
+          "passed": false,
+          "message": "21/23 links broken",
+          "details": [
+            "✗ Broken: ./jeton-card",
+            "✗ Broken: ./fees",
+            "✗ Broken: ./about",
+            "✗ Broken: ./newsroom",
+            "✗ Broken: ./partnerships"
+          ]
+        }
+      ]
+    }
+  },
+  "1766495129493": {
+    "id": "1766495129493",
+    "userId": "1766230242260",
+    "url": "./",
+    "status": "completed",
+    "progress": 100,
+    "pagesCloned": 15,
+    "assetsCaptured": 0,
+    "outputDir": "./clones/1766230242260/1766495129493",
+    "createdAt": "2025-12-23T13:05:29.493Z",
+    "completedAt": "2025-12-23T13:35:08.135Z",
+    "errors": []
+  }
+}

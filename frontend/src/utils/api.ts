@@ -7,6 +7,26 @@ const api = axios.create({
   },
 })
 
+// Dev auto-login credentials (same as App.tsx)
+const DEV_USER = '777'
+
+// Track if we're already refreshing to prevent loops
+let isRefreshing = false
+
+// Auto-login function - gets fresh token
+async function autoLogin(): Promise<string | null> {
+  try {
+    const response = await axios.post('/api/auth/login', { email: DEV_USER })
+    const token = response.data.token
+    localStorage.setItem('token', token)
+    console.log('[API] Auto-refreshed token for user', DEV_USER)
+    return token
+  } catch {
+    console.error('[API] Auto-login failed')
+    return null
+  }
+}
+
 // Add auth token to requests
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
@@ -16,14 +36,31 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// Handle auth errors
+// Handle auth errors - AUTO REFRESH instead of redirect
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
+  async (error) => {
+    const originalRequest = error.config
+
+    // If 401/403 and we haven't tried refreshing yet
+    if ((error.response?.status === 401 || error.response?.status === 403) && !originalRequest._retry && !isRefreshing) {
+      originalRequest._retry = true
+      isRefreshing = true
+
+      const newToken = await autoLogin()
+      isRefreshing = false
+
+      if (newToken) {
+        // Retry original request with new token
+        originalRequest.headers.Authorization = `Bearer ${newToken}`
+        return api(originalRequest)
+      }
+
+      // Auto-login failed, redirect to login
       localStorage.removeItem('token')
       window.location.href = '/login'
     }
+
     return Promise.reject(error)
   }
 )

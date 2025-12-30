@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-16"?>
+<!--
+  Windows Task Scheduler Configuration for Merlin Website Cloner
+
+  This task starts Merlin services automatically on system boot.
+
+  To import this task:
+  1. Open Task Scheduler (taskschd.msc)
+  2. Click "Import Task..." in the Actions panel
+  3. Select this file
+  4. Click OK
+
+  Or run as Administrator:
+  schtasks /create /tn "Merlin-Startup" /xml "c:\Cursor Projects\Mirror Site\scripts\merlin-startup-task.xml"
+-->
+<Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+  <RegistrationInfo>
+    <Date>2025-12-29T00:00:00</Date>
+    <Author>Merlin Website Cloner</Author>
+    <Description>Starts Merlin Website Cloner services (backend, frontend, autoimprover, watchdog) on system boot using PM2.</Description>
+    <URI>\Merlin-Startup</URI>
+  </RegistrationInfo>
+  <Triggers>
+    <!-- Start on system boot -->
+    <BootTrigger>
+      <Enabled>true</Enabled>
+      <Delay>PT1M</Delay>
+    </BootTrigger>
+    <!-- Also start on user logon (backup trigger) -->
+    <LogonTrigger>
+      <Enabled>true</Enabled>
+      <Delay>PT30S</Delay>
+    </LogonTrigger>
+  </Triggers>
+  <Principals>
+    <Principal id="Author">
+      <UserId>S-1-5-18</UserId>
+      <RunLevel>HighestAvailable</RunLevel>
+    </Principal>
+  </Principals>
+  <Settings>
+    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
+    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
+    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
+    <AllowHardTerminate>true</AllowHardTerminate>
+    <StartWhenAvailable>true</StartWhenAvailable>
+    <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>
+    <IdleSettings>
+      <StopOnIdleEnd>false</StopOnIdleEnd>
+      <RestartOnIdle>false</RestartOnIdle>
+    </IdleSettings>
+    <AllowStartOnDemand>true</AllowStartOnDemand>
+    <Enabled>true</Enabled>
+    <Hidden>false</Hidden>
+    <RunOnlyIfIdle>false</RunOnlyIfIdle>
+    <DisallowStartOnRemoteAppSession>false</DisallowStartOnRemoteAppSession>
+    <UseUnifiedSchedulingEngine>true</UseUnifiedSchedulingEngine>
+    <WakeToRun>false</WakeToRun>
+    <ExecutionTimeLimit>PT0S</ExecutionTimeLimit>
+    <Priority>7</Priority>
+    <RestartOnFailure>
+      <Interval>PT5M</Interval>
+      <Count>3</Count>
+    </RestartOnFailure>
+  </Settings>
+  <Actions Context="Author">
+    <Exec>
+      <Command>cmd.exe</Command>
+      <Arguments>/c "c:\Cursor Projects\Mirror Site\scripts\merlin-startup.bat"</Arguments>
+      <WorkingDirectory>c:\Cursor Projects\Mirror Site</WorkingDirectory>
+    </Exec>
+  </Actions>
+</Task>

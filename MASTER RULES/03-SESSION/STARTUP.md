@@ -1,44 +1,62 @@
 # Session Startup Rules
 
-## MANDATORY STARTUP SEQUENCE
+## AUTOMATIC STARTUP SYSTEM
 
-Every time you start a new session, execute these steps IN ORDER:
+**Two automatic mechanisms ensure proper startup:**
+
+1. **CLAUDE.md** - Automatically read by Claude Code on session start
+2. **SessionStart Hook** - In `.claude/settings.local.json`, auto-checks/starts servers
 
 ---
 
-## Step 1: Read Core Rules
-```
-Read MASTER RULES/01-CORE/IDENTITY.md
-Read MASTER RULES/01-CORE/QUICK_COMMANDS.md
-Read MASTER RULES/01-CORE/FROZEN_STACK.md
+## MANDATORY STARTUP SEQUENCE
+
+Execute these steps IN ORDER (automatic or manual):
+
+---
+
+## Step 1: START SERVERS IMMEDIATELY
+
+**THIS IS MANDATORY - DO THIS FIRST BEFORE ANYTHING ELSE**
+
+```bash
+cd "c:/Cursor Projects/Mirror Site" && npm run dev
 ```
 
-## Step 2: Check Progress Files
-```
-Read claude-progress.txt
-Read feature_list.json
+Run in background. Wait for both servers to be ready:
+- **Backend**: http://localhost:3000 (API)
+- **Frontend**: http://localhost:5000 (UI)
+
+Verify with:
+```bash
+curl -s http://localhost:3000/api/health
 ```
 
-## Step 3: Check Chat History
+**DO NOT proceed until servers return 200 OK.**
+
+---
+
+## Step 2: Read ALL Master Rules
+
+Read these files every session:
 ```
-Read the latest file in chat-history/
+MASTER RULES/01-CORE/IDENTITY.md        - Who you are
+MASTER RULES/01-CORE/QUICK_COMMANDS.md  - Commands 0, 2, 3
+MASTER RULES/01-CORE/FROZEN_STACK.md    - Tech stack (LOCKED)
+MASTER RULES/02-AUTONOMOUS/DECISION_MAKING.md - Autonomy rules
+MASTER RULES/03-SESSION/STARTUP.md      - This file
+MASTER RULES/04-PROJECT/CLONE_ENGINE.md - 120% features
 ```
 
-## Step 4: Verify Server Status
-```powershell
-cd "C:\CURSOR PROJECTS\StargatePortal"
-curl http://localhost:5000/api/health
+## Step 3: Check Progress
+```
+claude-progress.txt
 ```
 
-If not running:
-```powershell
-npm run dev
-```
-Wait up to 15s for 200 OK.
-
-## Step 5: Report Status to User
+## Step 4: Report Status to User
 
 Tell the user:
+- Server status (MUST be running)
 - What was the last thing worked on
 - Current project status
 - Any pending tasks
@@ -51,8 +69,8 @@ Tell the user:
 ```
 ## SESSION START
 
+**Server Status:** ✅ Running (Backend: 3000, Frontend: 5000)
 **Last Session:** [Date/Topic]
-**Server Status:** Running / Not Running
 **Current Task:** [From feature_list.json]
 
 ### Recent Activity:
@@ -69,22 +87,40 @@ Ready to work. What do you need?
 
 ---
 
+## Server Configuration (LOCKED)
+
+| Service | Port | URL | Config File |
+|---------|------|-----|-------------|
+| Backend API | 3000 | http://localhost:3000 | src/server/index.ts |
+| Frontend UI | 5000 | http://localhost:5000 | frontend/vite.config.ts |
+
+**Vite Config (LOCKED):**
+```typescript
+server: {
+  port: 5000,
+  strictPort: true,  // NEVER change port
+  host: '0.0.0.0',   // Bind to all interfaces
+}
+```
+
+---
+
 ## Critical Reminders
 
-1. **Project Location**: `C:\CURSOR PROJECTS\StargatePortal` (NOT C:\StargatePortal)
-2. **Azure URL**: https://stargate-linux.azurewebsites.net/
-3. **Local URL**: http://localhost:5000
-4. **Use PowerShell syntax**: semicolons (;) not && for command chaining
-5. **Save chat history** at end of each session
+1. **Project Location**: `c:\Cursor Projects\Mirror Site`
+2. **Frontend URL**: http://localhost:5000
+3. **Backend API**: http://localhost:3000/api
+4. **Start Command**: `npm run dev` (starts both servers)
+5. **NEVER change port 5000** - strictPort is locked
 
 ---
 
 ## DO NOT
 
-- Start coding without reading rules
-- Assume you know the current state
+- Start coding without starting servers FIRST
+- Change the frontend port from 5000
+- Assume servers are running - ALWAYS verify
 - Make changes without checking what exists
-- Forget to save chat history
 - Skip the status check
 
 ---
@@ -92,25 +128,25 @@ Ready to work. What do you need?
 ## Quick Start (If Pressed for Time)
 
 Minimum required:
-1. `curl http://localhost:5000/api/health`
-2. Read `claude-progress.txt`
+1. `npm run dev` (start servers)
+2. Verify: `curl http://localhost:3000/api/health`
 3. Confirm rules: "0"
 
 ---
 
-## Project Structure Reminder
+## Project Structure
 
 ```
-C:\CURSOR PROJECTS\StargatePortal\
-├── client/                 # React frontend (Vite + TypeScript)
-├── server/                 # Express backend
-│   └── engines/
-│       └── merlin8/        # Merlin 8.0 AI Engine
-├── public/
-│   └── generated/          # Generated websites stored here
+c:\Cursor Projects\Mirror Site\
+├── frontend/               # React frontend (Vite + TypeScript)
+│   └── vite.config.ts      # Port 5000, strictPort: true
+├── src/
+│   ├── server/             # Express backend (port 3000)
+│   └── services/           # Clone engine services
 ├── MASTER RULES/           # All rules (this folder)
 ├── chat-history/           # Session transcripts
-└── claude-progress.txt     # Progress tracker
+├── data/                   # SQLite database, learning data
+└── start-dev.js            # Combined dev server starter
 ```
 
 ---
@@ -118,7 +154,21 @@ C:\CURSOR PROJECTS\StargatePortal\
 ## API Endpoints
 
 - `GET /api/health` - Server health check
-- `GET /api/merlin8/industries` - List all industries
-- `GET /api/merlin8/industry/:id` - Get industry DNA
-- `POST /api/merlin8/generate` - Generate website (SSE)
-- `POST /api/merlin8/generate-sync` - Generate website (JSON)
+- `POST /api/clone` - Start a clone job
+- `GET /api/clone/:id` - Get clone status
+- `GET /api/jobs` - List all clone jobs
+- `POST /api/auth/login` - User login
+
+---
+
+## Troubleshooting
+
+### Frontend not responding on localhost:5000
+1. Check if bound to IPv6 only: `netstat -ano | findstr :5000`
+2. If `[::1]:5000` - need `host: '0.0.0.0'` in vite.config.ts
+3. Restart with `npm run dev`
+
+### Port already in use
+1. Kill the process: `taskkill /F /PID <pid>`
+2. Or: `npx kill-port 5000 3000`
+3. Restart: `npm run dev`

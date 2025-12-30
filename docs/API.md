@@ -379,6 +379,290 @@ eventSource.onmessage = (event) => {
 };
 ```
 
+### Proxy Network
+
+#### GET /api/proxy-network/stats
+Get network-wide statistics.
+
+**Response:**
+```json
+{
+  "totalNodes": 1250,
+  "onlineNodes": 892,
+  "totalBandwidth": 15000,
+  "totalRequestsServed": 5420000,
+  "averageLatency": 145,
+  "averageSuccessRate": 0.94,
+  "countryCoverage": ["US", "UK", "DE", "FR", "JP", "AU"],
+  "bytesTransferredTotal": 1099511627776
+}
+```
+
+#### GET /api/proxy-network/my-nodes
+Get nodes registered by the current user.
+
+**Response:**
+```json
+{
+  "nodes": [
+    {
+      "id": "node_123",
+      "host": "192.168.1.100",
+      "port": 8899,
+      "country": "US",
+      "isOnline": true,
+      "successRate": 0.97,
+      "totalRequests": 45000,
+      "bytesServed": 5368709120,
+      "creditsEarned": 52.5,
+      "registeredAt": "2024-01-01T00:00:00.000Z"
+    }
+  ],
+  "totalCredits": 52.5
+}
+```
+
+#### POST /api/proxy-network/register
+Register a new proxy node.
+
+**Request Body:**
+```json
+{
+  "host": "192.168.1.100",
+  "port": 8899,
+  "bandwidth": 100
+}
+```
+
+**Response:**
+```json
+{
+  "id": "node_123",
+  "token": "node_auth_token",
+  "success": true
+}
+```
+
+#### GET /api/proxy-network/leaderboard
+Get top contributors leaderboard.
+
+**Response:**
+```json
+[
+  {
+    "userId": "user_456",
+    "totalCredits": 1250.5,
+    "totalNodes": 5,
+    "totalBytesServed": 10995116277760
+  }
+]
+```
+
+### Disaster Recovery
+
+#### GET /api/dr/sites
+List all monitored sites.
+
+**Response:**
+```json
+[
+  {
+    "id": "site_123",
+    "url": "https://mycompany.com",
+    "name": "Company Website",
+    "status": "online",
+    "lastCheck": "2024-01-01T12:00:00.000Z",
+    "lastBackup": "2024-01-01T11:00:00.000Z",
+    "backupCount": 24,
+    "syncEnabled": true,
+    "syncInterval": 60,
+    "uptime24h": 100,
+    "uptime7d": 99.9,
+    "uptime30d": 99.95,
+    "responseTime": 245,
+    "failoverEnabled": true,
+    "failoverTriggered": false
+  }
+]
+```
+
+#### POST /api/dr/sites
+Add a site to disaster recovery monitoring.
+
+**Request Body:**
+```json
+{
+  "url": "https://example.com",
+  "name": "My Website",
+  "syncInterval": 60,
+  "failoverEnabled": true
+}
+```
+
+**Response:**
+```json
+{
+  "id": "site_123",
+  "url": "https://example.com",
+  "success": true
+}
+```
+
+#### GET /api/dr/sites/:id/backups
+List all backups for a site.
+
+**Response:**
+```json
+[
+  {
+    "id": "backup_456",
+    "siteId": "site_123",
+    "timestamp": "2024-01-01T11:00:00.000Z",
+    "size": 52428800,
+    "pageCount": 45,
+    "assetCount": 230,
+    "type": "full",
+    "status": "complete"
+  }
+]
+```
+
+#### POST /api/dr/sites/:id/restore
+Restore a site from a backup.
+
+**Request Body:**
+```json
+{
+  "backupId": "backup_456"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "restoreJobId": "restore_789",
+  "message": "Restore initiated"
+}
+```
+
+#### GET /api/dr/events
+Get recent failover events.
+
+**Response:**
+```json
+[
+  {
+    "id": "event_123",
+    "siteId": "site_456",
+    "siteName": "Company Website",
+    "timestamp": "2024-01-01T12:00:00.000Z",
+    "type": "triggered",
+    "reason": "Response time exceeded threshold",
+    "duration": 45
+  }
+]
+```
+
+### Archives (WARC)
+
+#### GET /api/archives
+List all WARC archives.
+
+**Response:**
+```json
+[
+  {
+    "id": "archive_123",
+    "url": "https://example.com",
+    "domain": "example.com",
+    "captureDate": "2024-01-01T00:00:00.000Z",
+    "size": 52428800,
+    "pageCount": 45,
+    "assetCount": 230,
+    "warcFile": "example-com-2024-01-01.warc.gz",
+    "status": "complete",
+    "format": "warc.gz",
+    "cdxIndexed": true
+  }
+]
+```
+
+#### GET /api/archives/timeline
+Get capture timeline for calendar view.
+
+**Response:**
+```json
+[
+  {
+    "date": "2024-01-01",
+    "count": 3,
+    "urls": ["https://example.com", "https://docs.company.com"]
+  }
+]
+```
+
+#### GET /api/archives/:id/snapshots
+Get version snapshots for an archive.
+
+**Response:**
+```json
+[
+  {
+    "id": "snap_123",
+    "url": "https://example.com",
+    "timestamp": "2024-01-01T12:00:00.000Z",
+    "title": "Latest Capture",
+    "size": 52428800,
+    "changes": 12
+  }
+]
+```
+
+#### GET /api/archives/:id/playback
+Get playback URL for viewing archived content.
+
+**Response:**
+```json
+{
+  "playbackUrl": "/playback/archive_123/https://example.com/",
+  "cdxUrl": "/cdx/archive_123"
+}
+```
+
+#### GET /api/archives/:id/download
+Download WARC archive file.
+
+**Response:** WARC file download
+
+#### POST /api/archives/:id/compare
+Compare two archive snapshots.
+
+**Request Body:**
+```json
+{
+  "snapshotA": "snap_123",
+  "snapshotB": "snap_456"
+}
+```
+
+**Response:**
+```json
+{
+  "addedPages": 5,
+  "removedPages": 2,
+  "modifiedPages": 12,
+  "sizeDiff": 1048576,
+  "details": [
+    {
+      "url": "/about",
+      "change": "modified",
+      "diff": "..."
+    }
+  ]
+}
+```
+
 ## Examples
 
 ### Complete Clone Example

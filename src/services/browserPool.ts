@@ -22,12 +22,18 @@ export class BrowserPool {
   private idleTimeout: number;
   private userAgentManager: UserAgentManager;
   private idleTimers: Map<Browser, NodeJS.Timeout> = new Map();
+  private waitQueue: Array<{
+    resolve: (browser: Browser) => void;
+    reject: (error: Error) => void;
+    options?: StealthBrowserOptions;
+  }> = [];
+  private acquiring: boolean = false;
 
   constructor(options: BrowserPoolOptions = {}) {
-    // REDUCED for low memory usage (max 8GB RAM target)
-    this.maxSize = options.maxSize || 2;   // Reduced from 20 to 2 max browsers
-    this.minSize = options.minSize || 1;   // Reduced from 5 to 1 min browser
-    this.idleTimeout = options.idleTimeout || 60000; // 1 minute (reduced from 5)
+    // Increased defaults for better concurrent performance
+    this.maxSize = options.maxSize || 10;   // Increased from 2 to 10
+    this.minSize = options.minSize || 2;    // Increased from 1 to 2
+    this.idleTimeout = options.idleTimeout || 180000; // 3 minutes
     this.userAgentManager = new UserAgentManager();
   }
 
@@ -39,40 +45,52 @@ export class BrowserPool {
     if (this.pool.length > 0) {
       const browser = this.pool.pop()!;
       this.inUse.add(browser);
-      
+
       // Clear idle timer if exists
       const timer = this.idleTimers.get(browser);
       if (timer) {
         clearTimeout(timer);
         this.idleTimers.delete(browser);
       }
-      
+
       return browser;
     }
 
     // If pool is empty and we haven't reached max size, create new browser
-    if (this.pool.length + this.inUse.size < this.maxSize) {
-      const userAgent = this.userAgentManager.getNextUserAgent();
-      const tlsConfig = TLSFingerprintMatcher.getTLSConfig(userAgent.userAgent);
-      
-      const browser = await createStealthBrowser({
-        userAgent: userAgent.userAgent,
-        viewport: {
-          width: 1920,
-          height: 1080,
-          deviceScaleFactor: 1,
-        },
-        locale: userAgent.language,
-        ...options,
-      });
-      
-      this.inUse.add(browser);
-      return browser;
+    const totalBrowsers = this.pool.length + this.inUse.size;
+    if (totalBrowsers < this.maxSize) {
+      return this.createNewBrowser(options);
     }
 
-    // Pool is full, wait for a browser to become available
-    // In a real implementation, we'd use a queue here
-    // For now, create a new one anyway (will be cleaned up later)
+    // Pool is full - queue this request and wait
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        // Remove from queue
+        const index = this.waitQueue.findIndex(q => q.resolve === resolve);
+        if (index !== -1) {
+          this.waitQueue.splice(index, 1);
+        }
+        reject(new Error('Timeout waiting for available browser (pool full)'));
+      }, 30000); // 30 second timeout
+
+      this.waitQueue.push({
+        resolve: (browser: Browser) => {
+          clearTimeout(timeout);
+          resolve(browser);
+        },
+        reject: (error: Error) => {
+          clearTimeout(timeout);
+          reject(error);
+        },
+        options,
+      });
+    });
+  }
+
+  /**
+   * Create a new browser instance
+   */
+  private async createNewBrowser(options?: StealthBrowserOptions): Promise<Browser> {
     const userAgent = this.userAgentManager.getNextUserAgent();
     const browser = await createStealthBrowser({
       userAgent: userAgent.userAgent,
@@ -84,9 +102,44 @@ export class BrowserPool {
       locale: userAgent.language,
       ...options,
     });
-    
+
     this.inUse.add(browser);
     return browser;
+  }
+
+  /**
+   * Process waiting queue when a browser becomes available
+   */
+  private processQueue(): void {
+    if (this.waitQueue.length === 0) return;
+
+    const queued = this.waitQueue.shift()!;
+
+    // Try to get from pool first
+    if (this.pool.length > 0) {
+      const browser = this.pool.pop()!;
+      this.inUse.add(browser);
+
+      const timer = this.idleTimers.get(browser);
+      if (timer) {
+        clearTimeout(timer);
+        this.idleTimers.delete(browser);
+      }
+
+      queued.resolve(browser);
+      return;
+    }
+
+    // Create new if under limit
+    const totalBrowsers = this.pool.length + this.inUse.size;
+    if (totalBrowsers < this.maxSize) {
+      this.createNewBrowser(queued.options)
+        .then(queued.resolve)
+        .catch(queued.reject);
+    } else {
+      // Put back in queue (shouldn't happen but be safe)
+      this.waitQueue.unshift(queued);
+    }
   }
 
   /**
@@ -101,18 +154,28 @@ export class BrowserPool {
 
     // Check if browser is still connected
     if (!browser.isConnected()) {
-      return; // Browser is closed, don't add to pool
+      // Browser is closed, process any waiting requests
+      this.processQueue();
+      return;
+    }
+
+    // If there are waiting requests, give browser directly to them
+    if (this.waitQueue.length > 0) {
+      const queued = this.waitQueue.shift()!;
+      this.inUse.add(browser);
+      queued.resolve(browser);
+      return;
     }
 
     // If pool has space, add browser back
     if (this.pool.length < this.maxSize) {
       this.pool.push(browser);
-      
+
       // Set idle timer to close browser if unused
       const timer = setTimeout(() => {
         this.closeBrowser(browser);
       }, this.idleTimeout);
-      
+
       this.idleTimers.set(browser, timer);
     } else {
       // Pool is full, close the browser

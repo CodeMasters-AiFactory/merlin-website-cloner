@@ -64,7 +64,7 @@ Located in `src/services/`:
 
 ### Start Development
 ```powershell
-cd "C:\Cursor Projects\Merlin website clone"
+cd "C:\Cursor Projects\Mirror Site"
 npm run dev
 ```
 
@@ -87,7 +87,7 @@ curl http://localhost:3000/api/health
 
 ## Project Location
 
-- **Path**: `C:\Cursor Projects\Merlin website clone`
+- **Path**: `C:\Cursor Projects\Mirror Site`
 - **Backend URL**: http://localhost:3000
 - **Frontend URL**: http://localhost:5173
 
@@ -98,15 +98,15 @@ curl http://localhost:3000/api/health
 Use semicolons for command chaining (not &&):
 ```powershell
 # Correct
-cd "C:\Cursor Projects\Merlin website clone"; npm run dev
+cd "C:\Cursor Projects\Mirror Site"; npm run dev
 
 # Wrong (bash syntax)
-cd "C:\Cursor Projects\Merlin website clone" && npm run dev
+cd "C:\Cursor Projects\Mirror Site" && npm run dev
 ```
 
 Paths with spaces need quotes:
 ```powershell
-cd "C:\Cursor Projects\Merlin website clone"
+cd "C:\Cursor Projects\Mirror Site"
 ```
 
 ---

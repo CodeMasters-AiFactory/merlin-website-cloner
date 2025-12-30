@@ -5,6 +5,12 @@
  * Security: COD-11 hardening applied
  */
 
+// Load environment variables from .env files
+import dotenv from 'dotenv';
+dotenv.config(); // Load .env
+dotenv.config({ path: '.env.services' }); // Load .env.services (proxy + CAPTCHA keys)
+dotenv.config({ path: '.env.proxy' }); // Load .env.proxy (proxy only)
+
 import express from 'express';
 import compression from 'compression';
 import path from 'path';
@@ -33,11 +39,19 @@ import {
   sanitizeRequest,
   securityHeaders,
 } from './security.js';
-import { db, type User } from './database.js';
+import { db, type User, type PageProgress } from './database.js';
 import fs from 'fs-extra';
+
+// Track active job controllers for pause/stop functionality
+interface JobController {
+  abortController: AbortController;
+  pauseFlag: { paused: boolean };
+}
+const activeJobControllers = new Map<string, JobController>();
 import { ConfigManager } from '../services/configManager.js';
 import { PaymentService } from '../services/paymentService.js';
 import { merlinProxyNetwork } from '../services/proxyNetwork.js';
+import { enhancedProxyNetwork } from '../services/proxyNetworkEnhanced.js';
 import Stripe from 'stripe';
 import enhancedRoutes, { initializeEnhancedOrchestrator } from './enhancedRoutes.js';
 
@@ -298,24 +312,62 @@ app.post('/api/clone', cloneRateLimiter, authenticateToken, async (req: AuthRequ
     const activeJobs = db.getJobsByUserId(userId).filter(j => j.status === 'processing').length;
     monitoring.setActiveJobs('clone', activeJobs);
 
+    // Create abort controller and pause flag for this job
+    const abortController = new AbortController();
+    const pauseFlag = { paused: false };
+    activeJobControllers.set(job.id, { abortController, pauseFlag });
+
+    // Initialize pages progress tracking
+    const pagesProgress: PageProgress[] = [];
+
+    // Create a fresh cloner instance for this job to prevent asset map cross-contamination
+    // when multiple clones run concurrently (critical fix for parallel clones)
+    const jobCloner = new WebsiteCloner();
+
     // Start cloning in background with progress tracking
-    cloner.clone({
+    jobCloner.clone({
       url,
       outputDir,
       ...options,
+      abortSignal: abortController.signal,
+      pauseFlag,
       onProgress: (progress) => {
+        // Check if job was stopped
+        if (abortController.signal.aborted) {
+          return;
+        }
         // Update job with progress
         const currentJob = db.getJobById(job.id);
         const recentFiles = progress.recentFiles || [];
         const existingFiles = currentJob?.recentFiles || [];
-        
+
         // Merge recent files (keep last 20)
         const allFiles = [...existingFiles, ...recentFiles]
           .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
           .slice(0, 20);
 
+        // Update or add page progress entry
+        if (progress.currentUrl) {
+          const existingPageIndex = pagesProgress.findIndex(p => p.url === progress.currentUrl);
+          if (existingPageIndex >= 0) {
+            pagesProgress[existingPageIndex] = {
+              ...pagesProgress[existingPageIndex],
+              status: progress.status === 'complete' ? 'complete' : 'downloading',
+              assetsDownloaded: progress.assetsCaptured,
+            };
+          } else {
+            pagesProgress.push({
+              url: progress.currentUrl,
+              status: 'downloading',
+              startedAt: new Date().toISOString(),
+              assetsTotal: 10, // Estimate
+              assetsDownloaded: 0,
+            });
+          }
+        }
+
         db.updateJob(job.id, {
-          progress: progress.totalPages > 0 
+          progress: progress.totalPages > 0
             ? Math.round((progress.currentPage / progress.totalPages) * 100)
             : 0,
           currentUrl: progress.currentUrl,
@@ -324,9 +376,13 @@ app.post('/api/clone', cloneRateLimiter, authenticateToken, async (req: AuthRequ
           pagesCloned: progress.currentPage,
           assetsCaptured: progress.assetsCaptured || currentJob?.assetsCaptured || 0,
           recentFiles: allFiles,
+          pagesProgress: pagesProgress.slice(-50), // Keep last 50 pages
         });
       }
     }).then(async (result) => {
+      // Clean up controller
+      activeJobControllers.delete(job.id);
+
       // Record metrics
       if (result.pagesCloned > 0) {
         monitoring.recordPageCloned('success');
@@ -334,7 +390,7 @@ app.post('/api/clone', cloneRateLimiter, authenticateToken, async (req: AuthRequ
       if (result.errors.length > 0) {
         monitoring.recordError('clone', 'medium');
       }
-      
+
       // Update active jobs metric
       const activeJobs = db.getJobsByUserId(userId).filter(j => j.status === 'processing').length;
       monitoring.setActiveJobs('clone', activeJobs);
@@ -374,19 +430,25 @@ app.post('/api/clone', cloneRateLimiter, authenticateToken, async (req: AuthRequ
       }
 
     }).catch((error) => {
+      // Clean up controller
+      activeJobControllers.delete(job.id);
+
       console.error('Clone error:', error);
-      
+
       // Record error metric
       monitoring.recordError('clone', 'high');
       monitoring.recordPageCloned('failed');
-      
+
       // Update active jobs metric
       const activeJobs = db.getJobsByUserId(userId).filter(j => j.status === 'processing').length;
       monitoring.setActiveJobs('clone', activeJobs);
-      
+
+      // Check if it was an abort (user stopped)
+      const wasAborted = abortController.signal.aborted;
+
       db.updateJob(job.id, {
         status: 'failed',
-        errors: [error.message || String(error)],
+        errors: [wasAborted ? 'Clone stopped by user' : (error.message || String(error))],
         completedAt: new Date().toISOString()
       });
     });
@@ -554,6 +616,165 @@ app.get('/api/jobs/:id/progress', authenticateToken, (req: AuthRequest, res) => 
   req.on('close', () => {
     clearInterval(interval);
     res.end();
+  });
+});
+
+// POST /api/jobs/:id/stop - Stop a running clone job
+app.post('/api/jobs/:id/stop', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const jobId = req.params.id;
+    const userId = req.userId!;
+
+    const job = db.getJobById(jobId);
+    if (!job) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+
+    // Check access (admins can stop any job)
+    const user = db.getUserById(userId);
+    const isAdmin = user && ((user as any).isAdmin || (user as any).role === 'admin');
+    if (job.userId !== userId && !isAdmin) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    if (job.status !== 'processing' && job.status !== 'paused') {
+      return res.status(400).json({ error: 'Job is not running or paused' });
+    }
+
+    // Signal abort to the running job
+    const controller = activeJobControllers.get(jobId);
+    if (controller) {
+      controller.abortController.abort();
+      activeJobControllers.delete(jobId);
+    }
+
+    // Update job status
+    db.updateJob(jobId, {
+      status: 'failed',
+      message: 'Stopped by user',
+      errors: [...(job.errors || []), 'Clone stopped by user'],
+      completedAt: new Date().toISOString()
+    });
+
+    res.json({ success: true, message: 'Job stopped' });
+  } catch (error) {
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// POST /api/jobs/:id/pause - Pause a running clone job
+app.post('/api/jobs/:id/pause', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const jobId = req.params.id;
+    const userId = req.userId!;
+
+    const job = db.getJobById(jobId);
+    if (!job) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+
+    // Check access
+    const user = db.getUserById(userId);
+    const isAdmin = user && ((user as any).isAdmin || (user as any).role === 'admin');
+    if (job.userId !== userId && !isAdmin) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    if (job.status !== 'processing') {
+      return res.status(400).json({ error: 'Job is not running' });
+    }
+
+    // Set pause flag
+    const controller = activeJobControllers.get(jobId);
+    if (controller) {
+      controller.pauseFlag.paused = true;
+    }
+
+    // Update job status
+    db.updateJob(jobId, {
+      status: 'paused',
+      pausedAt: new Date().toISOString(),
+      message: 'Paused by user'
+    });
+
+    res.json({ success: true, message: 'Job paused' });
+  } catch (error) {
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// POST /api/jobs/:id/resume - Resume a paused clone job
+app.post('/api/jobs/:id/resume', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const jobId = req.params.id;
+    const userId = req.userId!;
+
+    const job = db.getJobById(jobId);
+    if (!job) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+
+    // Check access
+    const user = db.getUserById(userId);
+    const isAdmin = user && ((user as any).isAdmin || (user as any).role === 'admin');
+    if (job.userId !== userId && !isAdmin) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    if (job.status !== 'paused') {
+      return res.status(400).json({ error: 'Job is not paused' });
+    }
+
+    // Clear pause flag if controller exists
+    const controller = activeJobControllers.get(jobId);
+    if (controller) {
+      controller.pauseFlag.paused = false;
+    }
+
+    // Update job status
+    db.updateJob(jobId, {
+      status: 'processing',
+      pausedAt: undefined,
+      message: 'Resumed'
+    });
+
+    res.json({ success: true, message: 'Job resumed' });
+  } catch (error) {
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// GET /api/jobs/:id/pages - Get per-page progress for a job
+app.get('/api/jobs/:id/pages', authenticateToken, (req: AuthRequest, res) => {
+  const userId = req.userId!;
+  const job = db.getJobById(req.params.id);
+
+  if (!job) {
+    return res.status(404).json({ error: 'Job not found' });
+  }
+
+  // Check access
+  const user = db.getUserById(userId);
+  const isAdmin = user && ((user as any).isAdmin || (user as any).role === 'admin');
+  if (job.userId !== userId && !isAdmin) {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+
+  res.json({
+    jobId: job.id,
+    status: job.status,
+    progress: job.progress,
+    totalPages: job.pagesCloned + (job.pagesProgress?.filter(p => p.status === 'pending').length || 0),
+    pagesCloned: job.pagesCloned,
+    pagesProgress: job.pagesProgress || [],
+    currentUrl: job.currentUrl,
+    message: job.message
   });
 });
 
@@ -1343,6 +1564,136 @@ app.get('/api/health', (req, res) => {
 });
 
 /**
+ * Autonomous Improvement System Routes
+ * Dashboard API for viewing improvement cycles, deployments, alerts, and status
+ */
+
+// GET /api/autonomous/cycles - Get improvement cycle history
+app.get('/api/autonomous/cycles', (req, res) => {
+  try {
+    const historyFile = path.join(__dirname, '../../data/improvement-history.json');
+    if (fs.existsSync(historyFile)) {
+      const cycles = JSON.parse(fs.readFileSync(historyFile, 'utf-8'));
+      res.json({ cycles: cycles.slice(-50) }); // Last 50 cycles
+    } else {
+      res.json({ cycles: [] });
+    }
+  } catch (error) {
+    res.json({ cycles: [], error: 'Failed to load cycles' });
+  }
+});
+
+// GET /api/autonomous/deployments - Get deployment history
+app.get('/api/autonomous/deployments', (req, res) => {
+  try {
+    const historyFile = path.join(__dirname, '../../data/deployment-history.json');
+    if (fs.existsSync(historyFile)) {
+      const deployments = JSON.parse(fs.readFileSync(historyFile, 'utf-8'));
+      res.json({ deployments: deployments.slice(-50) }); // Last 50 deployments
+    } else {
+      res.json({ deployments: [] });
+    }
+  } catch (error) {
+    res.json({ deployments: [], error: 'Failed to load deployments' });
+  }
+});
+
+// GET /api/autonomous/alerts - Get watchdog alerts
+app.get('/api/autonomous/alerts', (req, res) => {
+  try {
+    const alertsFile = path.join(__dirname, '../../data/watchdog-alerts.json');
+    if (fs.existsSync(alertsFile)) {
+      const alerts = JSON.parse(fs.readFileSync(alertsFile, 'utf-8'));
+      res.json({ alerts: alerts.slice(-100) }); // Last 100 alerts
+    } else {
+      res.json({ alerts: [] });
+    }
+  } catch (error) {
+    res.json({ alerts: [], error: 'Failed to load alerts' });
+  }
+});
+
+// GET /api/autonomous/status - Get autonomous system status
+app.get('/api/autonomous/status', (req, res) => {
+  try {
+    // Read various status files
+    const dataDir = path.join(__dirname, '../../data');
+
+    const status = {
+      autoImprover: {
+        isRunning: fs.existsSync(path.join(dataDir, 'autoimprover-running.lock')),
+        safeMode: false,
+        consecutiveFailures: 0,
+        currentCycle: null,
+      },
+      fixGenerator: {
+        hasApiKey: !!process.env.ANTHROPIC_API_KEY,
+        dryRunMode: false,
+        totalProposals: 0,
+      },
+      safeDeployer: {
+        totalDeployments: 0,
+        successfulDeployments: 0,
+        failedDeployments: 0,
+      },
+      emailNotifier: {
+        provider: process.env.SENDGRID_API_KEY ? 'sendgrid' :
+                  process.env.SMTP_HOST ? 'smtp' : 'console',
+        configured: !!(process.env.EMAIL_TO || process.env.SENDGRID_API_KEY),
+        totalSent: 0,
+      },
+    };
+
+    // Try to load more detailed status from files
+    try {
+      const proposalsFile = path.join(dataDir, 'fix-proposals.json');
+      if (fs.existsSync(proposalsFile)) {
+        const proposals = JSON.parse(fs.readFileSync(proposalsFile, 'utf-8'));
+        status.fixGenerator.totalProposals = proposals.length;
+      }
+    } catch {}
+
+    try {
+      const deploymentsFile = path.join(dataDir, 'deployment-history.json');
+      if (fs.existsSync(deploymentsFile)) {
+        const deployments = JSON.parse(fs.readFileSync(deploymentsFile, 'utf-8'));
+        status.safeDeployer.totalDeployments = deployments.length;
+        status.safeDeployer.successfulDeployments = deployments.filter((d: any) => d.status === 'success').length;
+        status.safeDeployer.failedDeployments = deployments.filter((d: any) => d.status === 'failed' || d.status === 'rolled_back').length;
+      }
+    } catch {}
+
+    try {
+      const emailLogFile = path.join(dataDir, 'email-log.json');
+      if (fs.existsSync(emailLogFile)) {
+        const emailLogs = JSON.parse(fs.readFileSync(emailLogFile, 'utf-8'));
+        status.emailNotifier.totalSent = emailLogs.filter((e: any) => e.status === 'sent').length;
+      }
+    } catch {}
+
+    res.json({ status });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get status' });
+  }
+});
+
+// GET /api/autonomous/daily-report - Get today's daily report
+app.get('/api/autonomous/daily-report', (req, res) => {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const reportFile = path.join(__dirname, `../../data/daily-report-${today}.txt`);
+    if (fs.existsSync(reportFile)) {
+      const report = fs.readFileSync(reportFile, 'utf-8');
+      res.json({ date: today, report });
+    } else {
+      res.json({ date: today, report: null, message: 'No report for today' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to load report' });
+  }
+});
+
+/**
  * Admin Routes (for development/testing)
  */
 
@@ -1406,13 +1757,11 @@ app.post('/api/proxy-network/register', authenticateToken, async (req: AuthReque
       return res.status(400).json({ error: 'host, port, and country are required' });
     }
 
-    const result = await merlinProxyNetwork.registerNode({
+    // Use enhanced proxy network with auto geo-enrichment
+    const result = await enhancedProxyNetwork.registerNode({
       host,
       port: parseInt(port),
       userId,
-      country,
-      city,
-      isp,
       bandwidth: bandwidth || 10,
       type: type || 'residential',
       version: version || '1.0.0',
@@ -1430,6 +1779,7 @@ app.post('/api/proxy-network/register', authenticateToken, async (req: AuthReque
       nodeId: result.nodeId,
       publicKey: result.publicKey,
       authToken: result.authToken,
+      geoData: result.geoData, // Include geo-enriched data
       message: 'Node registered successfully! You are now earning credits.',
     });
   } catch (error) {
@@ -1448,7 +1798,7 @@ app.post('/api/proxy-network/heartbeat', authenticateToken, async (req: AuthRequ
       return res.status(400).json({ error: 'nodeId is required' });
     }
 
-    await merlinProxyNetwork.heartbeat(nodeId, {
+    await enhancedProxyNetwork.heartbeat(nodeId, {
       isOnline: isOnline ?? true,
       latency: latency || 0,
       bandwidth: bandwidth || 10,
@@ -1472,7 +1822,7 @@ app.post('/api/proxy-network/report', authenticateToken, async (req: AuthRequest
       return res.status(400).json({ error: 'nodeId is required' });
     }
 
-    await merlinProxyNetwork.recordRequest(nodeId, {
+    await enhancedProxyNetwork.recordRequest(nodeId, {
       success: success ?? true,
       bytesTransferred: bytesTransferred || 0,
       responseTime: responseTime || 100,
@@ -1487,10 +1837,10 @@ app.post('/api/proxy-network/report', authenticateToken, async (req: AuthRequest
   }
 });
 
-// GET /api/proxy-network/stats - Get network statistics
+// GET /api/proxy-network/stats - Get network statistics (enhanced with ASN/continent data)
 app.get('/api/proxy-network/stats', (req, res) => {
   try {
-    const stats = merlinProxyNetwork.getNetworkStats();
+    const stats = enhancedProxyNetwork.getNetworkStats();
     res.json(stats);
   } catch (error) {
     res.status(500).json({
@@ -1499,24 +1849,35 @@ app.get('/api/proxy-network/stats', (req, res) => {
   }
 });
 
-// GET /api/proxy-network/my-nodes - Get user's registered nodes
+// GET /api/proxy-network/my-nodes - Get user's registered nodes (with enhanced geo data)
 app.get('/api/proxy-network/my-nodes', authenticateToken, (req: AuthRequest, res) => {
   try {
     const userId = req.userId!;
-    const { totalCredits, nodes } = merlinProxyNetwork.getUserCredits(userId);
+    const { totalCredits, nodes, totalBytesServed, totalRequests } = enhancedProxyNetwork.getUserCredits(userId);
 
     res.json({
       totalCredits,
+      totalBytesServed,
+      totalRequests,
       nodes: nodes.map(node => ({
         id: node.id,
         host: node.host,
         port: node.port,
         country: node.country,
+        countryCode: node.countryCode,
+        continent: node.continent,
+        asn: node.asn,
+        asnOrg: node.asnOrg,
+        type: node.type,
         isOnline: node.isOnline,
         successRate: node.successRate,
+        latencyAvg: node.latencyAvg,
+        latencyP50: node.latencyP50,
+        latencyP90: node.latencyP90,
         totalRequests: node.totalRequests,
         bytesServed: node.bytesServed,
         creditsEarned: node.creditsEarned,
+        score: node.score,
         registeredAt: node.registeredAt,
       })),
     });
@@ -1527,11 +1888,11 @@ app.get('/api/proxy-network/my-nodes', authenticateToken, (req: AuthRequest, res
   }
 });
 
-// GET /api/proxy-network/leaderboard - Get top contributors
+// GET /api/proxy-network/leaderboard - Get top contributors (with enhanced stats)
 app.get('/api/proxy-network/leaderboard', (req, res) => {
   try {
     const limit = parseInt(req.query.limit as string) || 10;
-    const leaderboard = merlinProxyNetwork.getLeaderboard(limit);
+    const leaderboard = enhancedProxyNetwork.getLeaderboard(limit);
 
     res.json(leaderboard);
   } catch (error) {
@@ -1541,21 +1902,27 @@ app.get('/api/proxy-network/leaderboard', (req, res) => {
   }
 });
 
-// POST /api/proxy-network/get-proxy - Get a proxy for cloning (internal use)
+// POST /api/proxy-network/get-proxy - Get a proxy for cloning (with advanced filtering)
 app.post('/api/proxy-network/get-proxy', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const { targetUrl, country, minBandwidth, requireResidential } = req.body;
+    const { targetUrl, country, continent, asn, type, minSuccessRate, maxLatency, preferResidential, preferMobile } = req.body;
 
-    const proxy = await merlinProxyNetwork.getProxy({
+    const proxy = await enhancedProxyNetwork.getProxy({
       targetUrl,
       country,
-      minBandwidth,
-      requireResidential,
+      continent,
+      asn,
+      type,
+      minSuccessRate: minSuccessRate || 0.8,
+      maxLatency,
+      preferResidential,
+      preferMobile,
     });
 
     if (!proxy) {
       return res.status(503).json({
         error: 'No proxies available. Contribute your bandwidth to help grow the network!',
+        network: enhancedProxyNetwork.getNetworkStats(),
       });
     }
 
@@ -1563,8 +1930,14 @@ app.post('/api/proxy-network/get-proxy', authenticateToken, async (req: AuthRequ
       host: proxy.host,
       port: proxy.port,
       country: proxy.country,
+      countryCode: proxy.countryCode,
+      continent: proxy.continent,
+      asn: proxy.asn,
+      asnOrg: proxy.asnOrg,
       type: proxy.type,
       successRate: proxy.successRate,
+      latencyAvg: proxy.latencyAvg,
+      score: proxy.score,
     });
   } catch (error) {
     res.status(500).json({
@@ -1577,8 +1950,119 @@ app.post('/api/proxy-network/get-proxy', authenticateToken, async (req: AuthRequ
 app.delete('/api/proxy-network/node/:nodeId', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const { nodeId } = req.params;
-    await merlinProxyNetwork.unregisterNode(nodeId);
-    res.json({ success: true, message: 'Node unregistered' });
+    const success = await enhancedProxyNetwork.unregisterNode(nodeId);
+    res.json({ success, message: success ? 'Node unregistered' : 'Node not found' });
+  } catch (error) {
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// GET /api/proxy-network/available-countries - Get all countries with proxies
+app.get('/api/proxy-network/available-countries', (req, res) => {
+  try {
+    const countries = enhancedProxyNetwork.getAvailableCountries();
+    res.json(countries);
+  } catch (error) {
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// GET /api/proxy-network/available-asns - Get all ASNs in the network
+app.get('/api/proxy-network/available-asns', (req, res) => {
+  try {
+    const asns = enhancedProxyNetwork.getAvailableASNs();
+    res.json(asns);
+  } catch (error) {
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// GET /api/proxy-network/by-continent/:continent - Get proxies by continent
+app.get('/api/proxy-network/by-continent/:continent', (req, res) => {
+  try {
+    const { continent } = req.params;
+    const proxies = enhancedProxyNetwork.getProxiesByContinent(continent.toUpperCase());
+    res.json({
+      continent,
+      count: proxies.length,
+      proxies: proxies.map(p => ({
+        id: p.id,
+        country: p.country,
+        countryCode: p.countryCode,
+        asn: p.asn,
+        asnOrg: p.asnOrg,
+        type: p.type,
+        isOnline: p.isOnline,
+        score: p.score,
+      })),
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// GET /api/proxy-network/by-asn/:asn - Get proxies by ASN
+app.get('/api/proxy-network/by-asn/:asn', (req, res) => {
+  try {
+    const asn = parseInt(req.params.asn);
+    const proxies = enhancedProxyNetwork.getProxiesByASN(asn);
+    res.json({
+      asn,
+      count: proxies.length,
+      proxies: proxies.map(p => ({
+        id: p.id,
+        country: p.country,
+        countryCode: p.countryCode,
+        asnOrg: p.asnOrg,
+        type: p.type,
+        isOnline: p.isOnline,
+        score: p.score,
+      })),
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// POST /api/proxy-network/get-multiple - Get multiple proxies with diversity
+app.post('/api/proxy-network/get-multiple', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { count, countries, continent, types, minSuccessRate, maxLatency, diverseASNs, diverseCountries } = req.body;
+
+    const proxies = await enhancedProxyNetwork.getProxies(count || 5, {
+      countries,
+      continent,
+      types,
+      minSuccessRate,
+      maxLatency,
+      diverseASNs: diverseASNs ?? true,
+      diverseCountries: diverseCountries ?? true,
+    });
+
+    res.json({
+      count: proxies.length,
+      proxies: proxies.map(p => ({
+        host: p.host,
+        port: p.port,
+        country: p.country,
+        countryCode: p.countryCode,
+        continent: p.continent,
+        asn: p.asn,
+        asnOrg: p.asnOrg,
+        type: p.type,
+        score: p.score,
+      })),
+    });
   } catch (error) {
     res.status(500).json({
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -1781,8 +2265,11 @@ app.post('/api/configs/:name/clone', authenticateToken, async (req: AuthRequest,
       errors: [],
     });
     
+    // Create a fresh cloner instance for this job to prevent asset map cross-contamination
+    const configJobCloner = new WebsiteCloner();
+
     // Start cloning in background
-    cloner.clone(cloneOptions).then((result) => {
+    configJobCloner.clone(cloneOptions).then((result) => {
       db.updateJob(job.id, {
         status: result.success ? 'completed' : 'failed',
         pagesCloned: result.pagesCloned,
@@ -1903,10 +2390,1062 @@ app.get('/api/consent', authenticateToken, (req: AuthRequest, res) => {
   res.json({ consents });
 });
 
+// ============================================================
+// DISASTER RECOVERY ROUTES
+// ============================================================
+import { disasterRecovery } from '../services/disasterRecovery.js';
+
+// POST /api/dr/sites - Register a site for disaster recovery
+app.post('/api/dr/sites', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { url, checkInterval, failoverEnabled, failoverUrl, dnsProvider, dnsConfig } = req.body;
+
+    if (!url) {
+      return res.status(400).json({ error: 'URL is required' });
+    }
+
+    const site = await disasterRecovery.registerSite({
+      url,
+      userId: req.user!.id,
+      checkInterval,
+      failoverEnabled,
+      failoverUrl,
+      dnsProvider,
+      dnsConfig,
+    });
+
+    res.json({ success: true, site });
+  } catch (error) {
+    console.error('[DR] Error registering site:', error);
+    res.status(500).json({ error: 'Failed to register site' });
+  }
+});
+
+// GET /api/dr/sites - Get all user's monitored sites
+app.get('/api/dr/sites', authenticateToken, (req: AuthRequest, res) => {
+  const sites = disasterRecovery.getSitesByUser(req.user!.id);
+  res.json({ sites });
+});
+
+// GET /api/dr/sites/:siteId - Get specific site details
+app.get('/api/dr/sites/:siteId', authenticateToken, (req: AuthRequest, res) => {
+  const site = disasterRecovery.getSite(req.params.siteId);
+
+  if (!site) {
+    return res.status(404).json({ error: 'Site not found' });
+  }
+
+  // Verify ownership
+  if (site.userId !== req.user!.id) {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+
+  res.json({ site });
+});
+
+// DELETE /api/dr/sites/:siteId - Unregister a site
+app.delete('/api/dr/sites/:siteId', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const site = disasterRecovery.getSite(req.params.siteId);
+
+    if (!site) {
+      return res.status(404).json({ error: 'Site not found' });
+    }
+
+    if (site.userId !== req.user!.id) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const success = await disasterRecovery.unregisterSite(req.params.siteId);
+    res.json({ success });
+  } catch (error) {
+    console.error('[DR] Error unregistering site:', error);
+    res.status(500).json({ error: 'Failed to unregister site' });
+  }
+});
+
+// POST /api/dr/sites/:siteId/check - Manually trigger a health check
+app.post('/api/dr/sites/:siteId/check', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const site = disasterRecovery.getSite(req.params.siteId);
+
+    if (!site) {
+      return res.status(404).json({ error: 'Site not found' });
+    }
+
+    if (site.userId !== req.user!.id) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const result = await disasterRecovery.checkSite(req.params.siteId);
+    res.json({ result });
+  } catch (error) {
+    console.error('[DR] Error checking site:', error);
+    res.status(500).json({ error: 'Failed to check site' });
+  }
+});
+
+// POST /api/dr/sites/:siteId/sync - Manually trigger a sync
+app.post('/api/dr/sites/:siteId/sync', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const site = disasterRecovery.getSite(req.params.siteId);
+
+    if (!site) {
+      return res.status(404).json({ error: 'Site not found' });
+    }
+
+    if (site.userId !== req.user!.id) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const result = await disasterRecovery.syncSite(req.params.siteId);
+    res.json({ result });
+  } catch (error) {
+    console.error('[DR] Error syncing site:', error);
+    res.status(500).json({ error: 'Failed to sync site' });
+  }
+});
+
+// GET /api/dr/sites/:siteId/versions - Get backup versions
+app.get('/api/dr/sites/:siteId/versions', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const site = disasterRecovery.getSite(req.params.siteId);
+
+    if (!site) {
+      return res.status(404).json({ error: 'Site not found' });
+    }
+
+    if (site.userId !== req.user!.id) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const versions = await disasterRecovery.getVersions(req.params.siteId);
+    res.json({ versions });
+  } catch (error) {
+    console.error('[DR] Error getting versions:', error);
+    res.status(500).json({ error: 'Failed to get versions' });
+  }
+});
+
+// POST /api/dr/sites/:siteId/restore/:version - Restore a specific version
+app.post('/api/dr/sites/:siteId/restore/:version', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const site = disasterRecovery.getSite(req.params.siteId);
+
+    if (!site) {
+      return res.status(404).json({ error: 'Site not found' });
+    }
+
+    if (site.userId !== req.user!.id) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const version = parseInt(req.params.version, 10);
+    const restorePath = await disasterRecovery.restoreVersion(req.params.siteId, version);
+    res.json({ success: true, restorePath });
+  } catch (error) {
+    console.error('[DR] Error restoring version:', error);
+    res.status(500).json({ error: 'Failed to restore version' });
+  }
+});
+
+// GET /api/dr/stats - Get overall DR statistics
+app.get('/api/dr/stats', authenticateToken, (req: AuthRequest, res) => {
+  const userSites = disasterRecovery.getSitesByUser(req.user!.id);
+
+  const stats = {
+    totalSites: userSites.length,
+    onlineSites: userSites.filter(s => s.status === 'online').length,
+    offlineSites: userSites.filter(s => s.status === 'offline').length,
+    degradedSites: userSites.filter(s => s.status === 'degraded').length,
+    totalBackupVersions: userSites.reduce((sum, s) => sum + s.backupVersions, 0),
+    totalBackupSize: userSites.reduce((sum, s) => sum + s.lastBackupSize, 0),
+    avgUptime: userSites.length > 0
+      ? userSites.reduce((sum, s) => sum + s.uptimePercent, 0) / userSites.length
+      : 100,
+    avgLatency: userSites.length > 0
+      ? userSites.reduce((sum, s) => sum + s.avgLatency, 0) / userSites.length
+      : 0,
+  };
+
+  res.json({ stats });
+});
+
+// GET /api/dr/events - Get DR events history (failovers, restorations, etc.)
+app.get('/api/dr/events', authenticateToken, (req: AuthRequest, res) => {
+  try {
+    const userSites = disasterRecovery.getSitesByUser(req.user!.id);
+
+    // Get events from all user's sites
+    const events: Array<{
+      id: string;
+      siteId: string;
+      siteName: string;
+      timestamp: string;
+      type: 'triggered' | 'resolved' | 'manual' | 'backup' | 'sync';
+      reason: string;
+      duration?: number;
+    }> = [];
+
+    for (const site of userSites) {
+      // Add synthetic events based on site history
+      const siteName = new URL(site.url).hostname;
+
+      if (site.lastSyncTime) {
+        events.push({
+          id: `sync-${site.id}-${Date.now()}`,
+          siteId: site.id,
+          siteName,
+          timestamp: site.lastSyncTime,
+          type: 'sync',
+          reason: 'Backup sync completed',
+        });
+      }
+
+      if (site.status === 'offline') {
+        events.push({
+          id: `offline-${site.id}`,
+          siteId: site.id,
+          siteName,
+          timestamp: site.lastCheck,
+          type: 'triggered',
+          reason: 'Site went offline - failover may be needed',
+        });
+      }
+
+      if (site.status === 'degraded') {
+        events.push({
+          id: `degraded-${site.id}`,
+          siteId: site.id,
+          siteName,
+          timestamp: site.lastCheck,
+          type: 'triggered',
+          reason: `Site degraded - latency ${site.avgLatency}ms`,
+        });
+      }
+    }
+
+    // Sort by timestamp descending
+    events.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+    res.json(events.slice(0, 50)); // Return last 50 events
+  } catch (error) {
+    console.error('[DR] Error fetching events:', error);
+    res.status(500).json({ error: 'Failed to fetch DR events' });
+  }
+});
+
+// ============================================================
+// ARCHIVE BROWSER ROUTES (aliases for frontend compatibility)
+// ============================================================
+
+// GET /api/archives - List all archives (alias for /api/archive/list)
+app.get('/api/archives', authenticateToken, (req: AuthRequest, res) => {
+  try {
+    const archives = warcPlayback.getArchives();
+
+    // Transform to frontend expected format
+    const formattedArchives = archives.map((a: any) => ({
+      id: a.id || a.name,
+      url: a.baseUrl || '',
+      domain: a.baseUrl ? new URL(a.baseUrl).hostname : 'unknown',
+      captureDate: a.createdAt || new Date().toISOString(),
+      size: a.size || 0,
+      pageCount: a.pageCount || 0,
+      assetCount: a.resourceCount || 0,
+      warcFile: a.warcPath || '',
+      status: 'complete',
+      format: a.warcPath?.endsWith('.gz') ? 'warc.gz' : 'warc',
+      cdxIndexed: true,
+    }));
+
+    res.json(formattedArchives);
+  } catch (error) {
+    console.error('[Archive] Error listing archives:', error);
+    res.json([]); // Return empty array on error
+  }
+});
+
+// GET /api/archives/timeline - Get capture timeline
+app.get('/api/archives/timeline', authenticateToken, (req: AuthRequest, res) => {
+  try {
+    const archives = warcPlayback.getArchives();
+
+    // Group by date
+    const timelineMap = new Map<string, { count: number; urls: string[] }>();
+
+    for (const archive of archives) {
+      const date = new Date(archive.createdAt || Date.now()).toISOString().split('T')[0];
+      if (!timelineMap.has(date)) {
+        timelineMap.set(date, { count: 0, urls: [] });
+      }
+      const entry = timelineMap.get(date)!;
+      entry.count++;
+      // Use archive name as URL placeholder since ArchiveInfo doesn't have baseUrl
+      if (archive.name && !entry.urls.includes(archive.name)) {
+        entry.urls.push(archive.name);
+      }
+    }
+
+    const timeline = Array.from(timelineMap.entries()).map(([date, data]) => ({
+      date,
+      count: data.count,
+      urls: data.urls,
+    }));
+
+    res.json(timeline);
+  } catch (error) {
+    console.error('[Archive] Error getting timeline:', error);
+    res.json([]);
+  }
+});
+
+// GET /api/archives/:archiveId/snapshots - Get version snapshots for an archive
+app.get('/api/archives/:archiveId/snapshots', authenticateToken, (req: AuthRequest, res) => {
+  try {
+    const { archiveId } = req.params;
+    const archives = warcPlayback.getArchives();
+    const archive = archives.find((a) => a.id === archiveId || a.name === archiveId);
+
+    if (!archive) {
+      return res.status(404).json({ error: 'Archive not found' });
+    }
+
+    // Create a single snapshot from the archive info
+    const snapshots = [{
+      id: `${archiveId}-0`,
+      url: archive.name,
+      timestamp: archive.createdAt?.toISOString() || new Date().toISOString(),
+      title: archive.name,
+      size: archive.totalSize || 0,
+    }];
+
+    res.json(snapshots);
+  } catch (error) {
+    console.error('[Archive] Error getting snapshots:', error);
+    res.status(500).json({ error: 'Failed to get snapshots' });
+  }
+});
+
+// ============================================================
+// PRE-SCAN ROUTE (for Clone Wizard)
+// ============================================================
+import { WebsitePreScanner } from '../services/websitePreScanner.js';
+import puppeteer from 'puppeteer';
+
+// POST /api/scan - Pre-scan a website before cloning
+app.post('/api/scan', authenticateToken, async (req: AuthRequest, res) => {
+  let browser: Awaited<ReturnType<typeof puppeteer.launch>> | null = null;
+  try {
+    const { url } = req.body;
+
+    if (!url) {
+      return res.status(400).json({ error: 'URL is required' });
+    }
+
+    // Launch browser for scanning
+    browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    });
+
+    const scanner = new WebsitePreScanner();
+    const scanResult = await scanner.scan(browser, url);
+
+    // Transform to frontend expected format
+    res.json({
+      url: scanResult.url,
+      accessible: true,
+      title: scanResult.domain || '',
+      description: `Framework: ${scanResult.framework || 'Unknown'}`,
+      pageCount: 1,
+      assetCount: scanResult.scriptCount + scanResult.styleCount + scanResult.imageCount,
+      hasDynamicContent: scanResult.isSPA,
+      hasProtection: false, // Will be detected during clone
+      protectionType: null,
+      estimatedSize: scanResult.pageSize,
+      recommendations: [
+        `Complexity: ${scanResult.complexity}`,
+        `Recommended concurrency: ${scanResult.recommendedSettings.concurrency}`,
+        `Timeout: ${scanResult.recommendedSettings.timeout}ms`,
+      ],
+      warnings: scanResult.warnings || [],
+      // Include original scan data
+      complexity: scanResult.complexity,
+      complexityScore: scanResult.complexityScore,
+      techStack: scanResult.techStack,
+      isSPA: scanResult.isSPA,
+      framework: scanResult.framework,
+    });
+  } catch (error) {
+    console.error('[Scan] Error scanning website:', error);
+    res.status(500).json({
+      error: 'Failed to scan website',
+      accessible: false,
+    });
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
+  }
+});
+
+// ============================================================
+// FULL APP CLONING ROUTES
+// ============================================================
+import { apiRecorder } from '../services/apiRecorder.js';
+import { EnhancedAPIMockServer } from '../services/apiMockServer.js';
+import { statePreserver } from '../services/statePreserver.js';
+
+// Active mock servers
+const activeMockServers = new Map<string, EnhancedAPIMockServer>();
+
+// POST /api/app-clone/record/start - Start API recording session
+app.post('/api/app-clone/record/start', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { targetUrl } = req.body;
+
+    if (!targetUrl) {
+      return res.status(400).json({ error: 'targetUrl is required' });
+    }
+
+    const session = await apiRecorder.startSession(targetUrl);
+    res.json({ success: true, session });
+  } catch (error) {
+    console.error('[AppClone] Error starting recording:', error);
+    res.status(500).json({ error: 'Failed to start recording' });
+  }
+});
+
+// POST /api/app-clone/record/stop - Stop API recording session
+app.post('/api/app-clone/record/stop', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { sessionId } = req.body;
+
+    if (!sessionId) {
+      return res.status(400).json({ error: 'sessionId is required' });
+    }
+
+    const session = await apiRecorder.stopSession(sessionId);
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    res.json({ success: true, session });
+  } catch (error) {
+    console.error('[AppClone] Error stopping recording:', error);
+    res.status(500).json({ error: 'Failed to stop recording' });
+  }
+});
+
+// POST /api/app-clone/record/interaction - Record an API interaction
+app.post('/api/app-clone/record/interaction', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { sessionId, request, response } = req.body;
+
+    if (!sessionId || !request || !response) {
+      return res.status(400).json({ error: 'sessionId, request, and response are required' });
+    }
+
+    const interaction = await apiRecorder.recordInteraction(sessionId, request, response);
+    res.json({ success: true, interaction });
+  } catch (error) {
+    console.error('[AppClone] Error recording interaction:', error);
+    res.status(500).json({ error: 'Failed to record interaction' });
+  }
+});
+
+// GET /api/app-clone/sessions - Get all recording sessions
+app.get('/api/app-clone/sessions', authenticateToken, (req: AuthRequest, res) => {
+  const sessions = apiRecorder.getAllSessions();
+  res.json({ sessions });
+});
+
+// GET /api/app-clone/sessions/:sessionId - Get session details
+app.get('/api/app-clone/sessions/:sessionId', authenticateToken, (req: AuthRequest, res) => {
+  const session = apiRecorder.getSession(req.params.sessionId);
+
+  if (!session) {
+    return res.status(404).json({ error: 'Session not found' });
+  }
+
+  res.json({ session });
+});
+
+// GET /api/app-clone/sessions/:sessionId/har - Export session as HAR
+app.get('/api/app-clone/sessions/:sessionId/har', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const har = await apiRecorder.exportAsHAR(req.params.sessionId);
+
+    if (!har) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="${req.params.sessionId}.har"`);
+    res.json(har);
+  } catch (error) {
+    console.error('[AppClone] Error exporting HAR:', error);
+    res.status(500).json({ error: 'Failed to export HAR' });
+  }
+});
+
+// GET /api/app-clone/sessions/:sessionId/mock-config - Export for mocking
+app.get('/api/app-clone/sessions/:sessionId/mock-config', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const config = await apiRecorder.exportForMocking(req.params.sessionId);
+
+    if (!config) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    res.json(config);
+  } catch (error) {
+    console.error('[AppClone] Error exporting mock config:', error);
+    res.status(500).json({ error: 'Failed to export mock config' });
+  }
+});
+
+// POST /api/app-clone/mock/start - Start a mock server
+app.post('/api/app-clone/mock/start', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { sessionId, port } = req.body;
+
+    if (!sessionId) {
+      return res.status(400).json({ error: 'sessionId is required' });
+    }
+
+    const session = apiRecorder.getSession(sessionId);
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    const mockPort = port || 4000 + Math.floor(Math.random() * 1000);
+    const mockServer = new EnhancedAPIMockServer({
+      port: mockPort,
+      recording: session,
+    });
+
+    await mockServer.start();
+    activeMockServers.set(sessionId, mockServer);
+
+    res.json({
+      success: true,
+      mockServerUrl: `http://localhost:${mockPort}`,
+      port: mockPort,
+    });
+  } catch (error) {
+    console.error('[AppClone] Error starting mock server:', error);
+    res.status(500).json({ error: 'Failed to start mock server' });
+  }
+});
+
+// POST /api/app-clone/mock/stop - Stop a mock server
+app.post('/api/app-clone/mock/stop', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { sessionId } = req.body;
+
+    const mockServer = activeMockServers.get(sessionId);
+    if (!mockServer) {
+      return res.status(404).json({ error: 'Mock server not found' });
+    }
+
+    await mockServer.stop();
+    activeMockServers.delete(sessionId);
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('[AppClone] Error stopping mock server:', error);
+    res.status(500).json({ error: 'Failed to stop mock server' });
+  }
+});
+
+// GET /api/app-clone/mock/:sessionId/stats - Get mock server stats
+app.get('/api/app-clone/mock/:sessionId/stats', authenticateToken, (req: AuthRequest, res) => {
+  const mockServer = activeMockServers.get(req.params.sessionId);
+
+  if (!mockServer) {
+    return res.status(404).json({ error: 'Mock server not found' });
+  }
+
+  res.json({ stats: mockServer.getStats() });
+});
+
+// POST /api/app-clone/state/capture - Process captured state
+app.post('/api/app-clone/state/capture', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { sessionId, state } = req.body;
+
+    if (!sessionId || !state) {
+      return res.status(400).json({ error: 'sessionId and state are required' });
+    }
+
+    const snapshot = await statePreserver.processCapture(state, sessionId);
+    res.json({ success: true, snapshot });
+  } catch (error) {
+    console.error('[AppClone] Error processing state:', error);
+    res.status(500).json({ error: 'Failed to process state' });
+  }
+});
+
+// GET /api/app-clone/state/:sessionId - Get state snapshots
+app.get('/api/app-clone/state/:sessionId', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const snapshots = await statePreserver.getSessionSnapshots(req.params.sessionId);
+    res.json({ snapshots });
+  } catch (error) {
+    console.error('[AppClone] Error getting snapshots:', error);
+    res.status(500).json({ error: 'Failed to get snapshots' });
+  }
+});
+
+// GET /api/app-clone/state/:sessionId/:snapshotId/bundle - Get restoration bundle
+app.get('/api/app-clone/state/:sessionId/:snapshotId/bundle', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const snapshot = await statePreserver.loadSnapshot(
+      req.params.sessionId,
+      req.params.snapshotId
+    );
+
+    if (!snapshot) {
+      return res.status(404).json({ error: 'Snapshot not found' });
+    }
+
+    const bundle = statePreserver.generateStateBundle(snapshot);
+    res.setHeader('Content-Type', 'text/html');
+    res.send(bundle);
+  } catch (error) {
+    console.error('[AppClone] Error generating bundle:', error);
+    res.status(500).json({ error: 'Failed to generate bundle' });
+  }
+});
+
+// GET /api/app-clone/capture-script - Get browser capture script
+app.get('/api/app-clone/capture-script', (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript');
+  res.send(statePreserver.getCaptureScript());
+});
+
+// ============================================================
+// ARCHIVAL PLATFORM ROUTES (WARC)
+// ============================================================
+import { EnhancedWARCGenerator, createWARCFromDirectory } from '../services/warcGeneratorEnhanced.js';
+import { warcPlayback } from '../services/warcPlayback.js';
+
+// Initialize WARC playback
+warcPlayback.initialize().catch((err) => {
+  console.warn('[Archive] Playback initialization deferred:', err.message);
+});
+
+// Active WARC generators
+const activeWarcGenerators = new Map<string, EnhancedWARCGenerator>();
+
+// POST /api/archive/create - Create WARC from cloned site
+app.post('/api/archive/create', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { cloneDir, baseUrl, name } = req.body;
+
+    if (!cloneDir || !baseUrl) {
+      return res.status(400).json({ error: 'cloneDir and baseUrl are required' });
+    }
+
+    const outputDir = './data/warc';
+    const result = await createWARCFromDirectory(cloneDir, outputDir, baseUrl, {
+      filename: name || `archive-${Date.now()}`,
+      operator: req.user!.email,
+    });
+
+    res.json({
+      success: true,
+      warcPath: result.warcPath,
+      cdxPath: result.cdxPath,
+      stats: result.stats,
+    });
+  } catch (error) {
+    console.error('[Archive] Error creating WARC:', error);
+    res.status(500).json({ error: 'Failed to create WARC archive' });
+  }
+});
+
+// POST /api/archive/generator/start - Start streaming WARC generator
+app.post('/api/archive/generator/start', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { name, description } = req.body;
+
+    const generator = new EnhancedWARCGenerator({
+      outputDir: './data/warc',
+      filename: name || `stream-archive-${Date.now()}`,
+      description: description || 'Streaming archive',
+      operator: req.user!.email,
+    });
+
+    const warcPath = await generator.start();
+    const generatorId = `gen_${Date.now()}`;
+    activeWarcGenerators.set(generatorId, generator);
+
+    res.json({
+      success: true,
+      generatorId,
+      warcPath,
+    });
+  } catch (error) {
+    console.error('[Archive] Error starting generator:', error);
+    res.status(500).json({ error: 'Failed to start WARC generator' });
+  }
+});
+
+// POST /api/archive/generator/:id/write - Write to streaming generator
+app.post('/api/archive/generator/:id/write', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const generator = activeWarcGenerators.get(req.params.id);
+    if (!generator) {
+      return res.status(404).json({ error: 'Generator not found' });
+    }
+
+    const { type, url, contentType, content, request, response } = req.body;
+
+    if (type === 'resource') {
+      await generator.writeResource(
+        url,
+        contentType,
+        Buffer.from(content, 'base64')
+      );
+    } else if (type === 'request-response') {
+      await generator.writeRequestResponse(
+        url,
+        {
+          method: request.method,
+          headers: request.headers,
+          body: request.body ? Buffer.from(request.body, 'base64') : undefined,
+        },
+        {
+          statusCode: response.statusCode,
+          statusMessage: response.statusMessage || 'OK',
+          headers: response.headers,
+          body: Buffer.from(response.body, 'base64'),
+        }
+      );
+    } else if (type === 'metadata') {
+      await generator.writeMetadata(url, content);
+    }
+
+    res.json({ success: true, stats: generator.getStats() });
+  } catch (error) {
+    console.error('[Archive] Error writing to generator:', error);
+    res.status(500).json({ error: 'Failed to write to WARC' });
+  }
+});
+
+// POST /api/archive/generator/:id/finish - Finish streaming generator
+app.post('/api/archive/generator/:id/finish', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const generator = activeWarcGenerators.get(req.params.id);
+    if (!generator) {
+      return res.status(404).json({ error: 'Generator not found' });
+    }
+
+    const result = await generator.finish();
+    activeWarcGenerators.delete(req.params.id);
+
+    // Reload archives
+    await warcPlayback.loadArchives();
+
+    res.json({
+      success: true,
+      warcPath: result.warcPath,
+      cdxPath: result.cdxPath,
+      stats: result.stats,
+    });
+  } catch (error) {
+    console.error('[Archive] Error finishing generator:', error);
+    res.status(500).json({ error: 'Failed to finish WARC' });
+  }
+});
+
+// GET /api/archive/list - List all archives
+app.get('/api/archive/list', authenticateToken, (req: AuthRequest, res) => {
+  const archives = warcPlayback.getArchives();
+  res.json({ archives });
+});
+
+// GET /api/archive/search - Search archives
+app.get('/api/archive/search', authenticateToken, (req: AuthRequest, res) => {
+  const query = (req.query.q as string) || '';
+  const results = warcPlayback.searchArchives(query);
+  res.json({ results });
+});
+
+// GET /api/archive/timestamps - Get timestamps for URL
+app.get('/api/archive/timestamps', authenticateToken, (req: AuthRequest, res) => {
+  const url = (req.query.url as string) || '';
+  const timestamps = warcPlayback.getTimestampsForUrl(url);
+  res.json({ timestamps });
+});
+
+// GET /api/archive/content - Get archived content
+app.get('/api/archive/content', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const url = (req.query.url as string) || '';
+    const timestamp = req.query.timestamp as string | undefined;
+
+    const content = await warcPlayback.getContent({
+      originalUrl: url,
+      timestamp,
+    });
+
+    if (!content) {
+      return res.status(404).json({ error: 'Content not found in archives' });
+    }
+
+    res.json({
+      content: content.content.toString('base64'),
+      contentType: content.contentType,
+      statusCode: content.statusCode,
+      headers: content.headers,
+      timestamp: content.timestamp,
+    });
+  } catch (error) {
+    console.error('[Archive] Error getting content:', error);
+    res.status(500).json({ error: 'Failed to retrieve archived content' });
+  }
+});
+
+// GET /api/archive/urls/:domain - Get URLs for domain
+app.get('/api/archive/urls/:domain', authenticateToken, (req: AuthRequest, res) => {
+  const urls = warcPlayback.getUrlsForDomain(req.params.domain);
+  res.json({ urls });
+});
+
+// POST /api/archive/playback/start - Start playback server
+app.post('/api/archive/playback/start', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { port } = req.body;
+
+    // Configure playback
+    const playback = new (await import('../services/warcPlayback.js')).WARCPlayback({
+      archivesDir: './data/warc',
+      port: port || 8080,
+    });
+
+    await playback.startServer();
+
+    res.json({
+      success: true,
+      playbackUrl: `http://localhost:${port || 8080}`,
+    });
+  } catch (error) {
+    console.error('[Archive] Error starting playback:', error);
+    res.status(500).json({ error: 'Failed to start playback server' });
+  }
+});
+
 /**
  * Serve cloned templates as static files
  */
 app.use('/clones', express.static(path.join(__dirname, '../..')));
+
+// ============================================
+// NEW FEATURE ROUTES (v2.0)
+// ============================================
+
+// Import new services
+import { webhookService } from '../services/webhookService.js';
+import { slackNotifier } from '../services/slackNotifier.js';
+import { s3Exporter } from '../services/s3Exporter.js';
+import { teamService } from '../services/teamService.js';
+import { setupOpenApiRoutes } from './openapi.js';
+import { ExportFormats } from '../services/exportFormats.js';
+
+// Setup OpenAPI documentation routes
+setupOpenApiRoutes(app);
+
+// --- Webhook Routes ---
+app.get('/api/webhooks', authenticateToken, (req: AuthRequest, res) => {
+  const webhooks = webhookService.getWebhooks();
+  res.json(webhooks);
+});
+
+app.post('/api/webhooks', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { url, events, secret } = req.body;
+    if (!url || !events || !Array.isArray(events)) {
+      return res.status(400).json({ error: 'url and events are required' });
+    }
+    const webhook = await webhookService.registerWebhook({
+      url,
+      events,
+      secret,
+      enabled: true,
+    });
+    res.status(201).json(webhook);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/api/webhooks/:id', authenticateToken, async (req: AuthRequest, res) => {
+  const deleted = await webhookService.unregisterWebhook(req.params.id);
+  if (deleted) {
+    res.status(204).send();
+  } else {
+    res.status(404).json({ error: 'Webhook not found' });
+  }
+});
+
+app.post('/api/webhooks/:id/test', authenticateToken, async (req: AuthRequest, res) => {
+  const result = await webhookService.testWebhook(req.params.id);
+  res.json(result);
+});
+
+// --- Slack Integration Routes ---
+app.post('/api/integrations/slack/configure', authenticateToken, (req: AuthRequest, res) => {
+  try {
+    const { webhookUrl, channel, username, iconEmoji } = req.body;
+    if (!webhookUrl) {
+      return res.status(400).json({ error: 'webhookUrl is required' });
+    }
+    slackNotifier.configure({ webhookUrl, channel, username, iconEmoji });
+    res.json({ success: true, message: 'Slack configured successfully' });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/integrations/slack/test', authenticateToken, async (req: AuthRequest, res) => {
+  if (!slackNotifier.isConfigured()) {
+    return res.status(400).json({ error: 'Slack not configured' });
+  }
+  const success = await slackNotifier.sendMessage('Test message from Merlin Website Cloner');
+  res.json({ success });
+});
+
+// --- S3 Export Routes ---
+app.post('/api/integrations/s3/configure', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { accessKeyId, secretAccessKey, region, bucket, endpoint, prefix } = req.body;
+    if (!accessKeyId || !secretAccessKey || !region || !bucket) {
+      return res.status(400).json({ error: 'accessKeyId, secretAccessKey, region, and bucket are required' });
+    }
+    await s3Exporter.configure({ accessKeyId, secretAccessKey, region, bucket, endpoint, prefix });
+    res.json({ success: true, message: 'S3 configured successfully' });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/jobs/:id/export/s3', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const userId = req.userId!;
+    const job = db.getJobById(req.params.id);
+    if (!job) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+    if (job.userId !== userId) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    if (!s3Exporter.isConfigured()) {
+      return res.status(400).json({ error: 'S3 not configured' });
+    }
+    const result = await s3Exporter.exportClone(job.outputDir, job.id, req.body.options || {});
+    res.json(result);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- PDF Export Route ---
+app.get('/api/jobs/:id/export/pdf', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const userId = req.userId!;
+    const job = db.getJobById(req.params.id);
+    if (!job) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+    if (job.userId !== userId) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    const exporter = new ExportFormats();
+    const outputPath = path.join(job.outputDir, 'pdf-export');
+    const result = await exporter.export(job.outputDir, {
+      format: 'pdf',
+      outputPath,
+      pdfOptions: req.query as any,
+    });
+    res.json({ success: true, path: result });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- Team/Organization Routes ---
+app.post('/api/teams', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const userId = req.userId!;
+    const { name, plan } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: 'Team name is required' });
+    }
+    const team = await teamService.createTeam(name, userId, plan || 'team');
+    res.status(201).json(team);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/teams', authenticateToken, (req: AuthRequest, res) => {
+  const userId = req.userId!;
+  const teams = teamService.getUserTeams(userId);
+  res.json(teams);
+});
+
+app.get('/api/teams/:id', authenticateToken, (req: AuthRequest, res) => {
+  const team = teamService.getTeam(req.params.id);
+  if (!team) {
+    return res.status(404).json({ error: 'Team not found' });
+  }
+  const userId = req.userId!;
+  if (!teamService.hasPermission(req.params.id, userId, 'team.read')) {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+  const members = teamService.getMembers(req.params.id);
+  res.json({ ...team, members });
+});
+
+app.post('/api/teams/:id/members', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const userId = req.userId!;
+    if (!teamService.hasPermission(req.params.id, userId, 'members.invite')) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    const { email, role } = req.body;
+    const invite = await teamService.createInvite(req.params.id, email, role || 'member', userId);
+    res.status(201).json(invite);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/api/teams/:teamId/members/:memberId', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const userId = req.userId!;
+    if (!teamService.hasPermission(req.params.teamId, userId, 'members.remove')) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    await teamService.removeMember(req.params.teamId, req.params.memberId, userId);
+    res.status(204).send();
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/teams/:id/audit', authenticateToken, (req: AuthRequest, res) => {
+  const userId = req.userId!;
+  if (!teamService.hasPermission(req.params.id, userId, 'audit.read')) {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+  const logs = teamService.getAuditLogs(req.params.id, parseInt(req.query.limit as string) || 100);
+  res.json(logs);
+});
 
 /**
  * Serve frontend for all other routes
@@ -1924,5 +3463,6 @@ app.listen(PORT, () => {
   console.log(`🚀 Merlin Website Clone server running on port ${PORT}`);
   console.log(`📱 Frontend: http://localhost:${PORT}`);
   console.log(`🔌 API: http://localhost:${PORT}/api`);
+  console.log(`📚 API Docs: http://localhost:${PORT}/api/docs`);
 });
 

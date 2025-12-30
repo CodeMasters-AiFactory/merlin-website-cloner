@@ -1,5 +1,5 @@
-import { Globe, AlertTriangle, CheckCircle, XCircle, Shield, Gavel } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { AlertTriangle, CheckCircle, XCircle, Shield, Gavel } from 'lucide-react'
+import { Navbar, Footer } from '../components/layout'
 
 export default function AcceptableUse() {
   const lastUpdated = new Date().toLocaleDateString('en-US', {
@@ -9,22 +9,8 @@ export default function AcceptableUse() {
   })
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center space-x-2">
-              <Globe className="w-8 h-8 text-primary-600" />
-              <span className="text-xl font-bold text-gray-900">Merlin Clone</span>
-            </Link>
-            <nav className="flex space-x-6">
-              <Link to="/terms" className="text-gray-600 hover:text-primary-600">Terms of Service</Link>
-              <Link to="/privacy" className="text-gray-600 hover:text-primary-600">Privacy Policy</Link>
-            </nav>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-white">
+      <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">Acceptable Use Policy</h1>
@@ -315,28 +301,9 @@ export default function AcceptableUse() {
           </section>
         </div>
 
-        {/* Navigation */}
-        <div className="flex justify-between items-center mt-12 pt-8 border-t border-gray-200">
-          <Link to="/privacy" className="text-primary-600 hover:text-primary-700 font-medium">
-            &larr; Privacy Policy
-          </Link>
-          <Link to="/terms" className="text-primary-600 hover:text-primary-700 font-medium">
-            Terms of Service &rarr;
-          </Link>
-        </div>
       </div>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400 py-8 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p>&copy; {new Date().getFullYear()} Merlin Clone. All rights reserved.</p>
-          <div className="flex justify-center space-x-6 mt-4">
-            <Link to="/terms" className="hover:text-white">Terms of Service</Link>
-            <Link to="/privacy" className="hover:text-white">Privacy Policy</Link>
-            <Link to="/acceptable-use" className="hover:text-white">Acceptable Use</Link>
-          </div>
-        </div>
-      </footer>
+      <Footer minimal />
     </div>
   )
 }

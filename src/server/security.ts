@@ -9,39 +9,83 @@ import cors from 'cors';
 import { Request, Response, NextFunction } from 'express';
 
 /**
+ * Permissive Mode - Disables ALL security restrictions
+ * Set PERMISSIVE_MODE=true in .env to enable
+ * WARNING: Never use in production!
+ */
+const PERMISSIVE_MODE = process.env.PERMISSIVE_MODE === 'true';
+
+if (PERMISSIVE_MODE) {
+  console.warn('\n⚠️  ================================================');
+  console.warn('⚠️  PERMISSIVE MODE ENABLED - ALL SECURITY DISABLED');
+  console.warn('⚠️  DO NOT USE IN PRODUCTION!');
+  console.warn('⚠️  ================================================\n');
+}
+
+/**
  * CORS Configuration
  * Restrict to allowed origins in production
  */
-const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS 
-  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
-  : ['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:5173'];
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS === '*'
+  ? ['*']
+  : process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+    : ['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:5173'];
+
+// Development-safe localhost origins (exact match, not substring)
+const DEV_ORIGINS = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://localhost:5000',
+  'http://localhost:8080',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5000',
+  'http://127.0.0.1:8080',
+];
 
 export const corsMiddleware = cors({
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    // Allow requests with no origin (mobile apps, Postman, etc.)
+    // Permissive mode: allow everything
+    if (PERMISSIVE_MODE || ALLOWED_ORIGINS.includes('*')) {
+      return callback(null, true);
+    }
+
+    // Allow requests with no origin (mobile apps, Postman, curl, etc.)
     if (!origin) {
       return callback(null, true);
     }
-    
-    // In development, allow all localhost origins
-    if (process.env.NODE_ENV !== 'production') {
-      if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
-        return callback(null, true);
-      }
-    }
-    
-    // Check against allowed origins
+
+    // Check against configured allowed origins (works in both dev and prod)
     if (ALLOWED_ORIGINS.includes(origin)) {
       return callback(null, true);
     }
-    
+
+    // In development, allow known dev origins (EXACT match, not substring)
+    // This prevents "localhost.evil.com" from being allowed
+    if (process.env.NODE_ENV !== 'production') {
+      if (DEV_ORIGINS.includes(origin)) {
+        return callback(null, true);
+      }
+      // Also allow any port on exact localhost/127.0.0.1
+      try {
+        const url = new URL(origin);
+        if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+          return callback(null, true);
+        }
+      } catch {
+        // Invalid URL, reject
+      }
+    }
+
     // In production, reject unknown origins
     if (process.env.NODE_ENV === 'production') {
+      console.warn(`CORS: Blocked origin: ${origin}`);
       return callback(new Error('CORS not allowed'), false);
     }
-    
-    // Development fallback - allow but warn
-    console.warn(`⚠️  CORS: Allowing unknown origin: ${origin}`);
+
+    // Development fallback for other origins - allow but warn
+    console.warn(`⚠️  CORS: Allowing unknown origin in dev: ${origin}`);
     return callback(null, true);
   },
   credentials: true,
@@ -54,7 +98,7 @@ export const corsMiddleware = cors({
  * Helmet Security Headers
  */
 export const helmetMiddleware = helmet({
-  contentSecurityPolicy: {
+  contentSecurityPolicy: PERMISSIVE_MODE ? false : {
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
@@ -73,51 +117,68 @@ export const helmetMiddleware = helmet({
  * Rate Limiters
  */
 
+// Check if development mode or permissive mode
+const isDev = process.env.NODE_ENV !== 'production';
+const skipRateLimiting = PERMISSIVE_MODE || isDev;
+
 // General API rate limit
+// In development or permissive mode, skip all rate limiting
 export const generalRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // 100 requests per window
+  max: PERMISSIVE_MODE ? 0 : (isDev ? 100000 : 1000), // 0 = unlimited in permissive
   message: { error: 'Too many requests, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => {
-    // Skip rate limiting for health checks and preview routes (they load many assets)
-    return req.path === '/health' || req.path === '/metrics' || req.path.startsWith('/preview/');
-  },
+  skip: () => skipRateLimiting, // Skip all rate limiting in permissive/dev mode
 });
 
 // Strict rate limit for auth endpoints (prevent brute force)
 export const authRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // Only 10 auth attempts per 15 minutes
+  max: PERMISSIVE_MODE ? 0 : (isDev ? 1000 : 10),
   message: { error: 'Too many authentication attempts, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
-  // Use IP-based rate limiting (default behavior)
+  skip: () => skipRateLimiting,
 });
 
 // Clone endpoint rate limit (expensive operation)
 export const cloneRateLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 20, // 20 clone jobs per hour
+  max: PERMISSIVE_MODE ? 0 : 200,
   message: { error: 'Clone limit reached, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: () => PERMISSIVE_MODE,
 });
 
 // Very strict rate limit for signup (prevent spam accounts)
 export const signupRateLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 5, // Only 5 signups per hour per IP
+  max: PERMISSIVE_MODE ? 0 : 5,
   message: { error: 'Too many accounts created, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: () => PERMISSIVE_MODE,
 });
 
 /**
  * URL Validation for clone requests
  */
 export function validateCloneUrl(url: string): { valid: boolean; error?: string } {
+  // In permissive mode, allow everything
+  if (PERMISSIVE_MODE) {
+    if (!url || typeof url !== 'string') {
+      return { valid: false, error: 'URL is required' };
+    }
+    try {
+      new URL(url);
+      return { valid: true };
+    } catch {
+      return { valid: false, error: 'Invalid URL format' };
+    }
+  }
+
   if (!url || typeof url !== 'string') {
     return { valid: false, error: 'URL is required' };
   }
@@ -129,10 +190,10 @@ export function validateCloneUrl(url: string): { valid: boolean; error?: string 
 
   try {
     const parsed = new URL(url);
-    
+
     // Block localhost and private IPs (SSRF prevention)
     const hostname = parsed.hostname.toLowerCase();
-    
+
     const blockedPatterns = [
       'localhost',
       '127.0.0.1',
@@ -148,7 +209,7 @@ export function validateCloneUrl(url: string): { valid: boolean; error?: string 
       'metadata.google',
       '169.254.169.254', // AWS metadata
     ];
-    
+
     for (const pattern of blockedPatterns) {
       if (hostname.includes(pattern) || hostname.startsWith(pattern)) {
         return { valid: false, error: 'Internal URLs are not allowed' };
@@ -175,6 +236,11 @@ export function validateCloneUrl(url: string): { valid: boolean; error?: string 
  * Request sanitization middleware
  */
 export function sanitizeRequest(req: Request, res: Response, next: NextFunction): void {
+  // In permissive mode, skip sanitization
+  if (PERMISSIVE_MODE) {
+    return next();
+  }
+
   // Remove null bytes from all string inputs
   const sanitize = (obj: any): any => {
     if (typeof obj === 'string') {
@@ -210,17 +276,28 @@ export function sanitizeRequest(req: Request, res: Response, next: NextFunction)
  * Security headers for API responses
  */
 export function securityHeaders(req: Request, res: Response, next: NextFunction): void {
+  // In permissive mode, skip security headers
+  if (PERMISSIVE_MODE) {
+    return next();
+  }
+
   // Prevent clickjacking
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-  
+
   // Prevent MIME type sniffing
   res.setHeader('X-Content-Type-Options', 'nosniff');
-  
-  // Enable XSS filter
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  
+
+  // XSS Protection - modern browsers should use CSP instead
+  // Setting to '0' is the modern recommendation as '1; mode=block' can introduce vulnerabilities
+  res.setHeader('X-XSS-Protection', '0');
+
   // Referrer policy
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  
+
   next();
 }
+
+/**
+ * Export permissive mode status for other modules
+ */
+export const isPermissiveMode = PERMISSIVE_MODE;
