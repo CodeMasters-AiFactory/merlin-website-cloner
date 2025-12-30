@@ -4,7 +4,14 @@
 
 MCP (Model Context Protocol) servers extend Claude's capabilities with specialized tools. This document lists all configured MCP servers for this project and any future projects.
 
-**Config Location:** `C:\Users\DEV1\.cursor\mcp.json`
+## Claude Code Configuration Locations
+
+| Scope | Location | Purpose |
+|-------|----------|---------|
+| **User (Global)** | `~/.claude.json` | All projects |
+| **Project** | `.mcp.json` | This project only |
+
+**Note:** We use Claude Code, NOT Cursor. The old Cursor config at `~/.cursor/mcp.json` is deprecated.
 
 ---
 
