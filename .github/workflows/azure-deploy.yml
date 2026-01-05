@@ -1,5 +1,5 @@
 # Merlin Website Cloner - Azure Web App Deployment
-# Deploy to Azure App Service using publish profile
+# Deploy to Azure App Service using Azure CLI
 
 name: Deploy to Azure
 
@@ -57,12 +57,32 @@ jobs:
           cd deploy
           npm ci --omit=dev
 
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: ./deploy
+          # Create zip for deployment (from inside deploy folder)
+          zip -r ../deploy.zip .
+
+      - name: Deploy to Azure via cURL
+        run: |
+          # Extract credentials from publish profile
+          echo '${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}' > profile.xml
+
+          # Get the username and password from the Zip Deploy profile
+          USERNAME=$(grep -o 'userName="[^"]*"' profile.xml | grep 'ZipDeploy' -A1 | head -1 | sed 's/userName="//;s/"$//' || grep -o 'userName="[^"]*"' profile.xml | head -1 | sed 's/userName="//;s/"$//')
+          PASSWORD=$(grep -o 'userPWD="[^"]*"' profile.xml | head -1 | sed 's/userPWD="//;s/"$//')
+
+          echo "Deploying to Azure..."
+
+          # Use Kudu ZIP deploy API
+          curl -X POST \
+            -u "$USERNAME:$PASSWORD" \
+            --data-binary @deploy.zip \
+            "https://merlin-website-cloner.scm.azurewebsites.net/api/zipdeploy" \
+            -H "Content-Type: application/zip" \
+            --fail \
+            --show-error \
+            -v
+
+          rm profile.xml
+          echo "Deployment complete!"
 
       - name: Verify deployment
         run: |
