@@ -61,27 +61,21 @@ jobs:
           zip -r ../deploy.zip .
 
       - name: Deploy to Azure via cURL
+        env:
+          AZURE_DEPLOY_USER: ${{ secrets.AZURE_DEPLOY_USER }}
+          AZURE_DEPLOY_PASSWORD: ${{ secrets.AZURE_DEPLOY_PASSWORD }}
         run: |
-          # Extract credentials from publish profile
-          echo '${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}' > profile.xml
-
-          # Get the username and password from the Zip Deploy profile
-          USERNAME=$(grep -o 'userName="[^"]*"' profile.xml | grep 'ZipDeploy' -A1 | head -1 | sed 's/userName="//;s/"$//' || grep -o 'userName="[^"]*"' profile.xml | head -1 | sed 's/userName="//;s/"$//')
-          PASSWORD=$(grep -o 'userPWD="[^"]*"' profile.xml | head -1 | sed 's/userPWD="//;s/"$//')
-
           echo "Deploying to Azure..."
 
           # Use Kudu ZIP deploy API
           curl -X POST \
-            -u "$USERNAME:$PASSWORD" \
+            -u "$AZURE_DEPLOY_USER:$AZURE_DEPLOY_PASSWORD" \
             --data-binary @deploy.zip \
             "https://merlin-website-cloner.scm.azurewebsites.net/api/zipdeploy" \
             -H "Content-Type: application/zip" \
             --fail \
-            --show-error \
-            -v
+            --show-error
 
-          rm profile.xml
           echo "Deployment complete!"
 
       - name: Verify deployment
